@@ -11,4 +11,7 @@ aiofiles>=23.0.0
 python-multipart>=0.0.6
 
 # Для продакшена
+
 gunicorn>=21.2.0
+
+pip install bcrypt
