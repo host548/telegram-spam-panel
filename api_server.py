@@ -5,6 +5,7 @@ API сервер для приёма запросов от веб-панели
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse  # Добавлено для обслуживания HTML
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
@@ -135,8 +136,18 @@ def update_user_settings(user_id: int, data: dict):
 
 # ===== API ENDPOINTS =====
 
-@app.get("/")
-async def root():
+@app.get("/", response_class=HTMLResponse)  # Новый маршрут для обслуживания панели
+async def serve_panel():
+    """Обслуживание веб-панели на корне"""
+    try:
+        with open("web_panel.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Панель не найдена")
+
+
+@app.get("/status")  # Перенесённый статус (был на /)
+async def api_status():
     """Проверка работы API"""
     return {
         "status": "online",
