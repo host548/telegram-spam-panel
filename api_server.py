@@ -546,21 +546,23 @@ async def cleanup_user_sessions(user_id: int):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# ===== ЗАПУСК СЕРВЕРА =====
-
 if __name__ == "__main__":
     import uvicorn
+    import os
+    
+    # Получаем порт из переменной окружения (Render использует PORT)
+    port = int(os.environ.get("PORT", 8000))
     
     print("=" * 70)
     print("🚀 Telegram Scheduler API Server")
     print("=" * 70)
-    print("\n📡 Запуск сервера на http://0.0.0.0:8000")
-    print("📖 Документация: http://0.0.0.0:8000/docs")
+    print(f"\n📡 Запуск сервера на 0.0.0.0:{port}")
+    print(f"📖 Документация: http://0.0.0.0:{port}/docs")
     print("\n" + "=" * 70)
     
     uvicorn.run(
         app, 
         host="0.0.0.0", 
-        port=8000,
+        port=port,
         log_level="info"
     )
