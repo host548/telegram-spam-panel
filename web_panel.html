@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Scheduler - Веб Панель</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .dialog-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .dialog-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dialog-item:hover {
+            background: #e9ecef;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🚀 Telegram Scheduler</h1>
+            <p style="color: #666; margin-bottom: 20px;">Веб-панель управления рассылками</p>
+            
+            <div id="statusMessage" class="status hidden"></div>
+
+            <!-- Секция авторизации -->
+            <div id="authSection">
+                <h2>📱 Авторизация</h2>
+                
+                <div class="form-group">
+                    <label>User ID:</label>
+                    <input type="number" id="userId" placeholder="123456" value="123456">
+                </div>
+
+                <div id="phoneStep">
+                    <div class="form-group">
+                        <label>Номер телефона:</label>
+                        <input type="tel" id="phone" placeholder="+79991234567">
+                    </div>
+                    <button onclick="sendCode()">Отправить код</button>
+                </div>
+
+                <div id="codeStep" class="hidden">
+                    <div class="form-group">
+                        <label>Код из Telegram:</label>
+                        <input type="text" id="code" placeholder="12345">
+                    </div>
+                    <button onclick="confirmCode()">Подтвердить код</button>
+                </div>
+
+                <div id="passwordStep" class="hidden">
+                    <div class="form-group">
+                        <label>2FA Пароль:</label>
+                        <input type="password" id="password" placeholder="Ваш Cloud Password">
+                    </div>
+                    <button onclick="confirmPassword()">Подтвердить пароль</button>
+                </div>
+            </div>
+
+            <!-- Главная панель -->
+            <div id="mainPanel" class="hidden">
+                <h2>📊 Панель управления</h2>
+                
+                <button onclick="loadDialogs()">🔄 Загрузить чаты</button>
+                <button onclick="logout()" class="btn-secondary">🚪 Выйти</button>
+
+                <div id="statsSection" class="stats hidden">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalChats">0</div>
+                        <div class="stat-label">Всего чатов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="privateChats">0</div>
+                        <div class="stat-label">Личных</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="groupChats">0</div>
+                        <div class="stat-label">Групп</div>
+                    </div>
+                </div>
+
+                <div id="dialogsSection" class="hidden" style="margin-top: 30px;">
+                    <h2>💬 Список чатов</h2>
+                    <div id="dialogsList" class="dialog-list"></div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h2>📨 Массовая рассылка</h2>
+                    
+                    <div class="form-group">
+                        <label>Текст сообщения:</label>
+                        <textarea id="broadcastText" placeholder="Введите текст сообщения..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Задержка (секунды):</label>
+                        <select id="delaySeconds">
+                            <option value="30">30 секунд</option>
+                            <option value="60">1 минута</option>
+                            <option value="300">5 минут</option>
+                            <option value="600">10 минут</option>
+                            <option value="1800">30 минут</option>
+                            <option value="3600">1 час</option>
+                        </select>
+                    </div>
+
+                    <button onclick="sendBroadcast()">🚀 Отправить всем</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let phoneCodeHash = null;
+        let currentDialogs = [];
+
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.classList.remove('hidden');
+            
+            setTimeout(() => {
+                statusEl.classList.add('hidden');
+            }, 5000);
+        }
+
+        function getUserId() {
+            return parseInt(document.getElementById('userId').value);
+        }
+
+        async function sendCode() {
+            const phone = document.getElementById('phone').value;
+            const userId = getUserId();
+
+            if (!phone.startsWith('+')) {
+                showStatus('Номер должен начинаться с +', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, phone })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    phoneCodeHash = data.phone_code_hash;
+                    document.getElementById('phoneStep').classList.add('hidden');
+                    document.getElementById('codeStep').classList.remove('hidden');
+                    showStatus(data.message, 'success');
+                } else {
+                    showStatus('Ошибка: ' + (data.detail || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка сети: ' + error.message, 'error');
+            }
+        }
+
+        async function confirmCode() {
+            const code = document.getElementById('code').value;
+            const userId = getUserId();
+
+            try {
+                const response = await fetch(`${API_URL}/auth/code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        code,
+                        phone_code_hash: phoneCodeHash
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('Авторизация успешна!', 'success');
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('mainPanel').classList.remove('hidden');
+                } else if (data.needs_password) {
+                    document.getElementById('codeStep').classList.add('hidden');
+                    document.getElementById('passwordStep').classList.remove('hidden');
+                    showStatus('Требуется 2FA пароль', 'info');
+                } else {
+                    showStatus('Неверный код', 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function confirmPassword() {
+            const password = document.getElementById('password').value;
+            const userId = getUserId();
+
+            try {
+                const response = await fetch(`${API_URL}/auth/password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('Авторизация успешна!', 'success');
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('mainPanel').classList.remove('hidden');
+                } else {
+                    showStatus('Неверный пароль', 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function loadDialogs() {
+            const userId = getUserId();
+            showStatus('Загрузка чатов...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/dialogs/${userId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentDialogs = data.dialogs;
+                    
+                    // Обновляем статистику
+                    document.getElementById('totalChats').textContent = data.stats.total;
+                    document.getElementById('privateChats').textContent = data.stats.private;
+                    document.getElementById('groupChats').textContent = data.stats.groups;
+                    document.getElementById('statsSection').classList.remove('hidden');
+
+                    // Отображаем список
+                    const dialogsList = document.getElementById('dialogsList');
+                    dialogsList.innerHTML = '';
+                    
+                    data.dialogs.slice(0, 20).forEach(dialog => {
+                        const emoji = dialog.type === 'private' ? '👤' : (dialog.type === 'channel' ? '📢' : '👥');
+                        const div = document.createElement('div');
+                        div.className = 'dialog-item';
+                        div.innerHTML = `${emoji} ${dialog.name}`;
+                        dialogsList.appendChild(div);
+                    });
+
+                    if (data.dialogs.length > 20) {
+                        const div = document.createElement('div');
+                        div.style.textAlign = 'center';
+                        div.style.padding = '10px';
+                        div.style.color = '#666';
+                        div.textContent = `... и ещё ${data.dialogs.length - 20}`;
+                        dialogsList.appendChild(div);
+                    }
+
+                    document.getElementById('dialogsSection').classList.remove('hidden');
+                    showStatus(`Загружено чатов: ${data.stats.total}`, 'success');
+                } else {
+                    showStatus('Ошибка загрузки чатов', 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function sendBroadcast() {
+            const userId = getUserId();
+            const text = document.getElementById('broadcastText').value;
+            const delaySeconds = parseInt(document.getElementById('delaySeconds').value);
+
+            if (!text.trim()) {
+                showStatus('Введите текст сообщения', 'error');
+                return;
+            }
+
+            if (currentDialogs.length === 0) {
+                showStatus('Сначала загрузите список чатов', 'error');
+                return;
+            }
+
+            const confirmed = confirm(`Отправить сообщение в ${currentDialogs.length} чатов?`);
+            if (!confirmed) return;
+
+            showStatus('Отправка рассылки...', 'info');
+
+            try {
+                const response = await fetch(`${API_URL}/broadcast`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        text,
+                        delay_seconds: delaySeconds,
+                        chat_ids: null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(
+                        `Успешно: ${data.successful}, Ошибок: ${data.failed}. Отправка в ${new Date(data.schedule_time).toLocaleTimeString()}`,
+                        'success'
+                    );
+                    document.getElementById('broadcastText').value = '';
+                } else {
+                    showStatus('Ошибка рассылки', 'error');
+                }
+            } catch (error) {
+                showStatus('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function logout() {
+            const userId = getUserId();
+            
+            try {
+                await fetch(`${API_URL}/auth/logout?user_id=${userId}`, {
+                    method: 'POST'
+                });
+
+                document.getElementById('mainPanel').classList.add('hidden');
+                document.getElementById('authSection').classList.remove('hidden');
+                document.getElementById('phoneStep').classList.remove('hidden');
+                document.getElementById('codeStep').classList.add('hidden');
+                document.getElementById('passwordStep').classList.add('hidden');
+                
+                document.getElementById('phone').value = '';
+                document.getElementById('code').value = '';
+                document.getElementById('password').value = '';
+                
+                showStatus('Вы вышли из системы', 'info');
+            } catch (error) {
+                showStatus('Ошибка при выходе', 'error');
+            }
+        }
+
+        // Проверка статуса при загрузке
+        window.addEventListener('load', async () => {
+            const userId = getUserId();
+            try {
+                const response = await fetch(`${API_URL}/auth/status/${userId}`);
+                const data = await response.json();
+                
+                if (data.authorized) {
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('mainPanel').classList.remove('hidden');
+                    showStatus('Вы уже авторизованы', 'success');
+                }
+            } catch (error) {
+                console.log('Не авторизован');
+            }
+        });
+    </script>
+</body>
+</html>
