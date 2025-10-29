@@ -211,24 +211,6 @@
             cursor: not-allowed;
         }
 
-        .register-link {
-            text-align: center;
-            margin-top: 24px;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .register-link a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-
-        .register-link a:hover {
-            color: var(--secondary);
-        }
-
         /* Dashboard */
         .dashboard {
             display: none;
@@ -516,33 +498,35 @@
         }
 
         .modal {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            animation: fadeIn 0.3s;
-        }
-
-        .modal.active {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
             display: flex;
             justify-content: center;
             align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
         }
 
         .modal-content {
-            background: var(--surface);
+            background: rgba(30, 41, 59, 0.9);
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 32px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 480px;
+            width: 100%;
+            position: relative;
             animation: slideUp 0.4s ease-out;
         }
 
@@ -562,420 +546,298 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: all 0.3s;
+            transition: color 0.3s;
         }
 
         .btn-close:hover {
-            background: var(--surface-hover);
-            color: var(--text-primary);
+            color: var(--danger);
         }
 
         .alert {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 12px;
-            animation: slideDown 0.4s ease-out;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease-out;
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .alert-success {
             background: rgba(16, 185, 129, 0.2);
-            border: 1px solid rgba(16, 185, 129, 0.3);
             color: var(--secondary);
         }
 
         .alert-error {
             background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.3);
             color: var(--danger);
         }
 
         .alert-info {
             background: rgba(37, 99, 235, 0.2);
-            border: 1px solid rgba(37, 99, 235, 0.3);
             color: var(--primary);
         }
 
         .file-upload {
+            background: var(--surface);
             border: 2px dashed var(--border);
             border-radius: 12px;
             padding: 32px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            position: relative;
         }
 
         .file-upload:hover {
             border-color: var(--primary);
-            background: rgba(37, 99, 235, 0.05);
+            background: var(--surface-hover);
         }
 
-        .file-upload input {
-            display: none;
-        }
-
-        .file-upload-label {
-            cursor: pointer;
+        .file-upload-label p {
+            color: var(--text-secondary);
+            font-size: 14px;
         }
 
         .file-preview {
-            margin-top: 16px;
-            padding: 12px;
-            background: var(--surface);
-            border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-
-        .file-preview img {
-            max-width: 100px;
-            max-height: 100px;
-            border-radius: 8px;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .tabs {
-                flex-wrap: nowrap;
-            }
-
-            .account-item, .template-item {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .account-actions, .template-actions {
-                width: 100%;
-                justify-content: stretch;
-            }
-
-            .btn-icon {
-                flex: 1;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-dark);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--surface);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
+            margin-top: 16px;
+            padding: 12px;
             background: var(--surface-hover);
+            border-radius: 12px;
+        }
+
+        .file-preview span {
+            flex: 1;
+            color: var(--text-primary);
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <!-- Login Page -->
     <div id="loginPage" class="login-container">
         <div class="login-box">
             <div class="login-header">
-                <i class="fas fa-paper-plane"></i>
+                <i class="fas fa-robot"></i>
                 <h1>Telegram Manager</h1>
-                <p>Войдите в свой аккаунт</p>
+                <p>Управление рассылками и автоматизацией</p>
             </div>
-
-            <div id="alertContainer"></div>
 
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Логин</label>
                     <div class="input-wrapper">
-                        <input type="text" id="username" required>
                         <i class="fas fa-user"></i>
+                        <input type="text" id="username" placeholder="Введите логин" required>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Пароль</label>
                     <div class="input-wrapper">
-                        <input type="password" id="password" required>
                         <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Введите пароль" required>
                     </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-sign-in-alt"></i>
-                    <span>Войти</span>
+                    Войти
                 </button>
             </form>
 
-            <div class="register-link">
-                Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрироваться</a>
-            </div>
+            <div id="alertContainer"></div>
         </div>
     </div>
 
-    <!-- Dashboard -->
     <div id="dashboard" class="dashboard">
         <nav class="navbar">
             <div class="navbar-brand">
-                <i class="fas fa-paper-plane"></i>
-                <span>Telegram Manager</span>
+                <i class="fas fa-robot"></i>
+                Telegram Manager
             </div>
             <div class="navbar-actions">
                 <div class="user-info">
                     <div class="user-avatar" id="userAvatar">U</div>
                     <span id="usernameDisplay">User</span>
                 </div>
-                <button class="btn btn-secondary" onclick="logout()" style="width: auto;">
+                <button class="btn btn-secondary" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span>Выйти</span>
+                    Выйти
                 </button>
             </div>
         </nav>
 
         <div class="container">
-            <!-- Statistics -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Аккаунтов</div>
-                    <div class="stat-value" id="statAccounts">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Шаблонов</div>
-                    <div class="stat-value" id="statTemplates">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Отправлено</div>
-                    <div class="stat-value" id="statSent">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Успешно</div>
-                    <div class="stat-value" id="statSuccess">0</div>
-                </div>
-            </div>
-
-            <!-- Tabs -->
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('accounts')">
-                    <i class="fas fa-users"></i> Аккаунты
-                </button>
-                <button class="tab" onclick="switchTab('templates')">
-                    <i class="fas fa-file-alt"></i> Шаблоны
-                </button>
-                <button class="tab" onclick="switchTab('broadcast')">
-                    <i class="fas fa-paper-plane"></i> Рассылка
-                </button>
-                <button class="tab" onclick="switchTab('instant')">
-                    <i class="fas fa-bolt"></i> Моментальная отправка
-                </button>
-                <button class="tab" onclick="switchTab('history')">
-                    <i class="fas fa-history"></i> История
-                </button>
+                <button class="tab active" onclick="switchTab('dashboard')">Дашборд</button>
+                <button class="tab" onclick="switchTab('accounts')">Аккаунты</button>
+                <button class="tab" onclick="switchTab('templates')">Шаблоны</button>
+                <button class="tab" onclick="switchTab('broadcast')">Рассылка</button>
+                <button class="tab" onclick="switchTab('instant')">Моментальная Отправка</button>
+                <button class="tab" onclick="switchTab('history')">История</button>
             </div>
 
-            <!-- Accounts Tab -->
-            <div id="accountsTab" class="tab-content active">
+            <div id="dashboardTab" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Аккаунты</div>
+                        <div class="stat-value" id="statAccounts">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Шаблоны</div>
+                        <div class="stat-value" id="statTemplates">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Отправлено</div>
+                        <div class="stat-value" id="statSent">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Успешно</div>
+                        <div class="stat-value" id="statSuccess">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="accountsTab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">
+                        <div class="card-title">
                             <i class="fas fa-users"></i>
-                            Telegram Аккаунты
-                        </h3>
-                        <button class="btn btn-primary" onclick="showAddAccountModal()" style="width: auto;">
+                            Ваши Telegram Аккаунты
+                        </div>
+                        <button class="btn btn-primary" onclick="showAddAccountModal()">
                             <i class="fas fa-plus"></i>
-                            Добавить аккаунт
+                            Добавить Аккаунт
                         </button>
                     </div>
                     <div id="accountsList" class="account-list"></div>
                 </div>
             </div>
 
-            <!-- Templates Tab -->
             <div id="templatesTab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">
+                        <div class="card-title">
                             <i class="fas fa-file-alt"></i>
                             Шаблоны Сообщений
-                        </h3>
-                        <button class="btn btn-primary" onclick="showAddTemplateModal()" style="width: auto;">
+                        </div>
+                        <button class="btn btn-primary" onclick="showAddTemplateModal()">
                             <i class="fas fa-plus"></i>
-                            Создать шаблон
+                            Создать Шаблон
                         </button>
                     </div>
                     <div id="templatesList" class="template-list"></div>
                 </div>
             </div>
 
-            <!-- Broadcast Tab -->
             <div id="broadcastTab" class="tab-content">
                 <div class="card">
-                    <h3 class="card-title">
-                        <i class="fas fa-paper-plane"></i>
-                        Массовая Рассылка
-                    </h3>
-
-                    <div class="form-group">
-                        <label>Выберите аккаунт</label>
-                        <select id="broadcastAccount">
-                            <option value="">Загрузка...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Текст сообщения</label>
-                        <textarea id="broadcastText" placeholder="Введите текст сообщения..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Прикрепить файл (опционально)</label>
-                        <div class="file-upload" onclick="document.getElementById('broadcastFile').click()">
-                            <input type="file" id="broadcastFile" accept="image/*,video/*,.pdf,.doc,.docx" onchange="handleBroadcastFileUpload(event)">
-                            <div class="file-upload-label">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
-                                <p>Нажмите для загрузки файла</p>
-                                <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">
-                                    Поддерживаются: изображения, видео, документы
-                                </p>
-                            </div>
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-broadcast-tower"></i>
+                            Массовая Рассылка
                         </div>
-                        <div id="broadcastFilePreview"></div>
                     </div>
+                    <form onsubmit="sendBroadcast(event)">
+                        <div class="form-group">
+                            <label>Аккаунт для рассылки</label>
+                            <select id="broadcastAccount" required></select>
+                        </div>
 
-                    <div class="form-group">
-                        <label>Задержка между сообщениями</label>
-                        <select id="broadcastDelay">
-                            <option value="30">30 секунд</option>
-                            <option value="60">1 минута</option>
-                            <option value="300">5 минут</option>
-                            <option value="600">10 минут</option>
-                            <option value="1800">30 минут</option>
-                            <option value="3600">1 час</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label>Текст сообщения</label>
+                            <textarea id="broadcastText" placeholder="Введите текст для рассылки..." required></textarea>
+                        </div>
 
-                    <button class="btn btn-primary" onclick="sendBroadcast()">
-                        <i class="fas fa-rocket"></i>
-                        Отправить всем
-                    </button>
+                        <div class="form-group">
+                            <label>Задержка между отправками (секунды)</label>
+                            <input type="number" id="broadcastDelay" value="30" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Прикрепить файл (опционально)</label>
+                            <div class="file-upload" onclick="document.getElementById('broadcastFile').click()">
+                                <input type="file" id="broadcastFile" accept="image/*,video/*,.pdf,.doc,.docx" onchange="handleBroadcastFileUpload(event)">
+                                <div class="file-upload-label">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
+                                    <p>Нажмите для загрузки файла</p>
+                                </div>
+                            </div>
+                            <div id="broadcastFilePreview"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Начать Рассылку
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <!-- Instant Send Tab -->
             <div id="instantTab" class="tab-content">
                 <div class="card">
-                    <h3 class="card-title">
-                        <i class="fas fa-bolt"></i>
-                        Моментальная Отправка После Входа
-                    </h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">
-                        Настройте автоматическую отправку шаблона сразу после авторизации в Telegram
-                    </p>
-
-                    <div class="form-group">
-                        <label>Выберите аккаунт</label>
-                        <select id="instantAccount" onchange="loadInstantSettings()">
-                            <option value="">Загрузка...</option>
-                        </select>
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-bolt"></i>
+                            Моментальная Отправка
+                        </div>
                     </div>
+                    <form onsubmit="saveInstantSettings(event)">
+                        <div class="form-group">
+                            <label>Аккаунт</label>
+                            <select id="instantAccount" required onchange="loadInstantSettings()"></select>
+                        </div>
 
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 12px;">
-                            <input type="checkbox" id="instantEnabled" style="width: auto; padding: 0; margin: 0;">
-                            Включить автоматическую отправку
-                        </label>
-                    </div>
+                        <div class="form-group">
+                            <label>Включить моментальную отправку</label>
+                            <input type="checkbox" id="instantEnabled">
+                        </div>
 
-                    <div class="form-group">
-                        <label>Выберите шаблон</label>
-                        <select id="instantTemplate">
-                            <option value="">Выберите шаблон</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label>Шаблон для отправки</label>
+                            <select id="instantTemplate" required></select>
+                        </div>
 
-                    <div class="form-group">
-                        <label>Задержка перед отправкой</label>
-                        <select id="instantDelay">
-                            <option value="10">10 секунд</option>
-                            <option value="30">30 секунд</option>
-                            <option value="60">1 минута</option>
-                            <option value="300">5 минут</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label>Задержка (секунды)</label>
+                            <input type="number" id="instantDelay" value="30" min="1" required>
+                        </div>
 
-                    <button class="btn btn-primary" onclick="saveInstantSettings()">
-                        <i class="fas fa-save"></i>
-                        Сохранить настройки
-                    </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Сохранить Настройки
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <!-- History Tab -->
             <div id="historyTab" class="tab-content">
                 <div class="card">
-                    <h3 class="card-title">
-                        <i class="fas fa-history"></i>
-                        История Рассылок
-                    </h3>
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-history"></i>
+                            История Рассылок
+                        </div>
+                    </div>
                     <div id="historyList"></div>
                 </div>
             </div>
+
+            <div id="alertContainer"></div>
         </div>
     </div>
 
-    <!-- Add Account Modal -->
+    <!-- Modals -->
     <div id="addAccountModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -985,11 +847,13 @@
                 </button>
             </div>
             <div id="modalAlertContainer"></div>
+
             <form id="addAccountForm" onsubmit="handleAddAccount(event)">
                 <div class="form-group">
                     <label>Номер телефона</label>
-                    <input type="tel" id="accountPhone" placeholder="+79991234567" required>
+                    <input type="text" id="accountPhone" placeholder="+79123456789" required>
                 </div>
+
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-paper-plane"></i>
                     Отправить код
@@ -999,8 +863,9 @@
             <form id="verifyCodeForm" class="hidden" onsubmit="handleVerifyCode(event)">
                 <div class="form-group">
                     <label>Код из Telegram</label>
-                    <input type="text" id="accountCode" placeholder="12345" required>
+                    <input type="text" id="accountCode" placeholder="Введите код" required>
                 </div>
+
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-check"></i>
                     Подтвердить
@@ -1009,18 +874,18 @@
 
             <form id="verify2FAForm" class="hidden" onsubmit="handleVerify2FA(event)">
                 <div class="form-group">
-                    <label>2FA Пароль</label>
-                    <input type="password" id="account2FA" placeholder="Ваш Cloud Password" required>
+                    <label>Пароль 2FA</label>
+                    <input type="password" id="account2FA" placeholder="Введите пароль 2FA" required>
                 </div>
+
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-key"></i>
+                    <i class="fas fa-lock"></i>
                     Подтвердить
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Add Template Modal -->
     <div id="addTemplateModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1066,10 +931,11 @@
         const SUPABASE_URL = 'https://wdmyvtyvalcczvittgci.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXl2dHl2YWxjY3p2aXR0Z2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODU1MDMsImV4cCI6MjA3NzI2MTUwM30.E6VINGOINsxr30Se-1ZTEt1SYBdNlW8y2Foe0CzJShU';
 
-        // Инициализация после загрузки
+        // Инициализация Supabase
+        let supabase;
         window.addEventListener('load', () => {
-            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);  // Или window.supabase.createClient(...)
-    
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        });
 
         let currentUser = null;
         let currentAccountPhone = null;
@@ -1151,34 +1017,6 @@
                 showAlert('Добро пожаловать!', 'success', 'alertContainer');
             } catch (error) {
                 showAlert('Неверный логин или пароль', 'error');
-            }
-        }
-
-        function showRegister() {
-            const username = prompt('Введите желаемый логин:');
-            if (!username) return;
-
-            const password = prompt('Введите пароль (минимум 6 символов):');
-            if (!password || password.length < 6) {
-                alert('Пароль должен содержать минимум 6 символов');
-                return;
-            }
-
-            registerUser(username, password);
-        }
-
-        async function registerUser(username, password) {
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: username + '@telegrammanager.local',
-                    password: password
-                });
-
-                if (error) throw error;
-
-                showAlert('Регистрация успешна! Войдите в систему', 'success');
-            } catch (error) {
-                showAlert('Ошибка регистрации: ' + error.message, 'error');
             }
         }
 
@@ -1354,4 +1192,3 @@
     </script>
 </body>
 </html>
-
