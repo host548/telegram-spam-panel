@@ -1065,7 +1065,11 @@
         // Supabase Configuration
         const SUPABASE_URL = 'https://wdmyvtyvalcczvittgci.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXl2dHl2YWxjY3p2aXR0Z2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODU1MDMsImV4cCI6MjA3NzI2MTUwM30.E6VINGOINsxr30Se-1ZTEt1SYBdNlW8y2Foe0CzJShU';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Инициализация после загрузки
+        window.addEventListener('load', () => {
+            const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);  // Или window.supabase.createClient(...)
+    
 
         let currentUser = null;
         let currentAccountPhone = null;
@@ -1350,3 +1354,4 @@
     </script>
 </body>
 </html>
+
