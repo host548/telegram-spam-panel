@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Твой стиль остаётся без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -705,10 +706,9 @@
             <div class="login-header">
                 <i class="fas fa-robot"></i>
                 <h1>Telegram Manager</h1>
-                <p>Управляйте рассылками эффективно</p>
+                <p>Управляйте рассылками легко</p>
             </div>
-
-            <form onsubmit="handleLogin(event)">
+            <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Логин</label>
                     <div class="input-wrapper">
@@ -716,7 +716,6 @@
                         <input type="text" id="username" placeholder="Введите логин" required>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>Пароль</label>
                     <div class="input-wrapper">
@@ -724,16 +723,15 @@
                         <input type="password" id="password" placeholder="Введите пароль" required>
                     </div>
                 </div>
-
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-sign-in-alt"></i>
                     Войти
                 </button>
             </form>
-
             <div class="register-link">
                 Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрироваться</a>
             </div>
+            <div id="alertContainer"></div>
         </div>
     </div>
 
@@ -744,10 +742,9 @@
                 <i class="fas fa-robot"></i>
                 Telegram Manager
             </div>
-
             <div class="navbar-actions">
                 <div class="user-info">
-                    <div id="userAvatar" class="user-avatar"></div>
+                    <div class="user-avatar" id="userAvatar"></div>
                     <span id="usernameDisplay"></span>
                 </div>
                 <button class="btn btn-secondary" onclick="logout()">
@@ -756,16 +753,13 @@
                 </button>
             </div>
         </nav>
-
         <div class="container">
-            <div id="alertContainer"></div>
-
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('dashboard')">Дашборд</button>
                 <button class="tab" onclick="switchTab('accounts')">Аккаунты</button>
                 <button class="tab" onclick="switchTab('templates')">Шаблоны</button>
                 <button class="tab" onclick="switchTab('broadcast')">Рассылка</button>
-                <button class="tab" onclick="switchTab('instant')">Моментальная</button>
+                <button class="tab" onclick="switchTab('instant')">Автоответ</button>
                 <button class="tab" onclick="switchTab('history')">История</button>
             </div>
 
@@ -773,11 +767,11 @@
             <div id="dashboardTab" class="tab-content active">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Аккаунты</div>
+                        <div class="stat-label">Аккаунтов</div>
                         <div class="stat-value" id="statAccounts">0</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Шаблоны</div>
+                        <div class="stat-label">Шаблонов</div>
                         <div class="stat-value" id="statTemplates">0</div>
                     </div>
                     <div class="stat-card">
@@ -797,14 +791,14 @@
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-users"></i>
-                            Ваши Telegram Аккаунты
+                            Telegram Аккаунты
                         </h3>
                         <button class="btn btn-primary" onclick="showAddAccountModal()">
                             <i class="fas fa-plus"></i>
                             Добавить аккаунт
                         </button>
                     </div>
-                    <div class="account-list" id="accountsList"></div>
+                    <div id="accountsList"></div>
                 </div>
             </div>
 
@@ -814,124 +808,103 @@
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-file-alt"></i>
-                            Шаблоны Сообщений
+                            Шаблоны сообщений
                         </h3>
                         <button class="btn btn-primary" onclick="showAddTemplateModal()">
                             <i class="fas fa-plus"></i>
                             Создать шаблон
                         </button>
                     </div>
-                    <div class="template-list" id="templatesList"></div>
+                    <div id="templatesList"></div>
                 </div>
             </div>
 
             <!-- Broadcast Tab -->
             <div id="broadcastTab" class="tab-content">
                 <div class="card">
-                    <h3 class="card-title">
-                        <i class="fas fa-broadcast-tower"></i>
-                        Массовая Рассылка
-                    </h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">
-                        Отправьте сообщение во все чаты или выбранные
-                    </p>
-
-                    <div class="form-group">
-                        <label>Выберите аккаунт</label>
-                        <select id="broadcastAccount">
-                            <option value="">Загрузка...</option>
-                        </select>
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-paper-plane"></i>
+                            Рассылка сообщений
+                        </h3>
                     </div>
-
-                    <div class="form-group">
-                        <label>Текст сообщения</label>
-                        <textarea id="broadcastText" placeholder="Введите текст для рассылки..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Задержка между отправками</label>
-                        <select id="broadcastDelay">
-                            <option value="30">30 секунд</option>
-                            <option value="60">1 минута</option>
-                            <option value="300">5 минут</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Прикрепить файл (опционально)</label>
-                        <div class="file-upload" onclick="document.getElementById('broadcastFile').click()">
-                            <input type="file" id="broadcastFile" accept="image/*,video/*,.pdf,.doc,.docx" onchange="handleBroadcastFileUpload(event)">
-                            <div class="file-upload-label">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
-                                <p>Нажмите для загрузки файла</p>
-                            </div>
+                    <form onsubmit="sendBroadcast(event)">
+                        <div class="form-group">
+                            <label>Аккаунт для рассылки</label>
+                            <select id="broadcastAccount" required></select>
                         </div>
-                        <div id="broadcastFilePreview"></div>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="sendBroadcast()">
-                        <i class="fas fa-paper-plane"></i>
-                        Начать рассылку
-                    </button>
+                        <div class="form-group">
+                            <label>Текст сообщения</label>
+                            <textarea id="broadcastText" placeholder="Введите текст..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Задержка (секунды)</label>
+                            <input type="number" id="broadcastDelay" value="30" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Прикрепить файл (опционально)</label>
+                            <div class="file-upload" onclick="document.getElementById('broadcastFile').click()">
+                                <input type="file" id="broadcastFile" accept="image/*,video/*,.pdf,.doc,.docx" onchange="handleBroadcastFileUpload(event)">
+                                <div class="file-upload-label">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
+                                    <p>Нажмите для загрузки файла</p>
+                                </div>
+                            </div>
+                            <div id="broadcastFilePreview"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Начать рассылку
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <!-- Instant Send Tab -->
+            <!-- Instant Tab -->
             <div id="instantTab" class="tab-content">
                 <div class="card">
-                    <h3 class="card-title">
-                        <i class="fas fa-bolt"></i>
-                        Моментальная Отправка После Входа
-                    </h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 24px;">
-                        Настройте автоматическую отправку шаблона сразу после авторизации в Telegram
-                    </p>
-
-                    <div class="form-group">
-                        <label>Выберите аккаунт</label>
-                        <select id="instantAccount" onchange="loadInstantSettings()">
-                            <option value="">Загрузка...</option>
-                        </select>
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-bolt"></i>
+                            Автоответ
+                        </h3>
                     </div>
-
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 12px;">
-                            <input type="checkbox" id="instantEnabled" style="width: auto; padding: 0; margin: 0;">
-                            Включить автоматическую отправку
-                        </label>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Выберите шаблон</label>
-                        <select id="instantTemplate">
-                            <option value="">Выберите шаблон</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Задержка перед отправкой</label>
-                        <select id="instantDelay">
-                            <option value="10">10 секунд</option>
-                            <option value="30">30 секунд</option>
-                            <option value="60">1 минута</option>
-                            <option value="300">5 минут</option>
-                        </select>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="saveInstantSettings()">
-                        <i class="fas fa-save"></i>
-                        Сохранить настройки
-                    </button>
+                    <form onsubmit="saveInstantSettings(event)">
+                        <div class="form-group">
+                            <label>Аккаунт</label>
+                            <select id="instantAccount" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Шаблон для ответа</label>
+                            <select id="instantTemplate" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Задержка (секунды)</label>
+                            <input type="number" id="instantDelay" value="30" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="instantEnabled">
+                                Включить автоответ
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Сохранить
+                        </button>
+                    </form>
                 </div>
             </div>
 
             <!-- History Tab -->
             <div id="historyTab" class="tab-content">
                 <div class="card">
-                    <h3 class="card-title">
-                        <i class="fas fa-history"></i>
-                        История Рассылок
-                    </h3>
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-history"></i>
+                            История Рассылок
+                        </h3>
+                    </div>
                     <div id="historyList"></div>
                 </div>
             </div>
@@ -1024,10 +997,6 @@
     </div>
 
     <script>
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://wdmyvtyvalcczvittgci.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXl2dHl2YWxjY3p2aXR0Z2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODU1MDMsImV4cCI6MjA3NzI2MTUwM30.E6VINGOINsxr30Se-1ZTEt1SYBdNlW8y2Foe0CzJShU';
-
         let currentUser = null;
         let currentAccountPhone = null;
         let phoneCodeHash = null;
@@ -1082,81 +1051,9 @@
             }
         }
 
-        // Manual Auth Functions using fetch
-        async function manualSignIn(email, password) {
-            const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Auth failed');
-            }
-
-            return await response.json();
-        }
-
-        async function manualSignUp(email, password) {
-            const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Signup failed');
-            }
-
-            return await response.json();
-        }
-
-        async function manualSignOut() {
-            const accessToken = localStorage.getItem('supabase.access_token');
-            if (!accessToken) return;
-
-            await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({})
-            });
-
-            localStorage.removeItem('supabase.session');
-            localStorage.removeItem('supabase.access_token');
-        }
-
-        async function manualGetSession() {
-            const accessToken = localStorage.getItem('supabase.access_token');
-            if (!accessToken) return { session: null };
-
-            const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-                method: 'GET',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-
-            if (!response.ok) {
-                localStorage.removeItem('supabase.session');
-                localStorage.removeItem('supabase.access_token');
-                return { session: null };
-            }
-
-            const user = await response.json();
-            return { session: { user, access_token: accessToken } };
+        // Helper to get token
+        function getToken() {
+            return localStorage.getItem('token');
         }
 
         // Authentication
@@ -1164,14 +1061,20 @@
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const email = username + '@telegrammanager.local';
 
             try {
-                const data = await manualSignIn(email, password);
-                localStorage.setItem('supabase.session', JSON.stringify(data));
-                localStorage.setItem('supabase.access_token', data.access_token);
-
-                currentUser = data.user;
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Login failed');
+                }
+                const data = await response.json();
+                localStorage.setItem('token', data.token);
+                currentUser = {username};  // Можно добавить больше данных из ответа
                 document.getElementById('usernameDisplay').textContent = username;
                 document.getElementById('userAvatar').textContent = username[0].toUpperCase();
 
@@ -1195,13 +1098,20 @@
                 return;
             }
 
-            const email = username + '@telegrammanager.local';
-            registerUser(email, password);
+            registerUser(username, password);
         }
 
-        async function registerUser(email, password) {
+        async function registerUser(username, password) {
             try {
-                const data = await manualSignUp(email, password);
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Signup failed');
+                }
                 showAlert('Регистрация успешна! Войдите в систему', 'success');
             } catch (error) {
                 showAlert('Ошибка регистрации: ' + error.message, 'error');
@@ -1209,7 +1119,7 @@
         }
 
         async function logout() {
-            await manualSignOut();
+            localStorage.removeItem('token');
             currentUser = null;
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('loginPage').style.display = 'flex';
@@ -1223,35 +1133,135 @@
         }
 
         async function loadStats() {
-            // This would load from your backend API
-            document.getElementById('statAccounts').textContent = '0';
-            document.getElementById('statTemplates').textContent = '0';
-            document.getElementById('statSent').textContent = '0';
-            document.getElementById('statSuccess').textContent = '0';
+            try {
+                const response = await fetch('/api/stats', {
+                    headers: {'Authorization': `Bearer ${getToken()}`}
+                });
+                if (!response.ok) throw new Error('Failed to load stats');
+                const data = await response.json();
+                document.getElementById('statAccounts').textContent = data.accounts;
+                document.getElementById('statTemplates').textContent = data.templates;
+                document.getElementById('statSent').textContent = data.sent;
+                document.getElementById('statSuccess').textContent = data.success;
+            } catch (error) {
+                showAlert('Ошибка загрузки stats: ' + error.message, 'error');
+            }
         }
 
         async function loadAccounts() {
             const accountsList = document.getElementById('accountsList');
-            accountsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Нет добавленных аккаунтов. Добавьте свой первый Telegram аккаунт!</p>';
+            try {
+                const response = await fetch('/api/accounts', {
+                    headers: {'Authorization': `Bearer ${getToken()}`}
+                });
+                if (!response.ok) throw new Error('Failed to load accounts');
+                const data = await response.json();
+                accountsList.innerHTML = '';
+                if (data.total === 0) {
+                    accountsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Нет добавленных аккаунтов. Добавьте свой первый Telegram аккаунт!</p>';
+                } else {
+                    data.accounts.forEach(acc => {
+                        const item = document.createElement('div');
+                        item.className = 'account-item';
+                        item.innerHTML = `
+                            <div class="account-info">
+                                <div class="account-avatar">${acc.phone[0]}</div>
+                                <div class="account-details">
+                                    <h4>${acc.phone}</h4>
+                                    <p>${acc.username} | ${acc.first_name}</p>
+                                </div>
+                            </div>
+                            <span class="status-badge status-${acc.status === 'active' ? 'active' : 'inactive'}">${acc.status}</span>
+                            <div class="account-actions">
+                                <button class="btn-icon btn-delete" onclick="deleteAccount('${acc.phone}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        accountsList.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                accountsList.innerHTML = '<p style="color: var(--danger); text-align: center;">Ошибка загрузки аккаунтов</p>';
+            }
         }
 
         async function loadAccountsForSelect(selectId) {
             const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Сначала добавьте аккаунт</option>';
+            try {
+                const response = await fetch('/api/accounts', {
+                    headers: {'Authorization': `Bearer ${getToken()}`}
+                });
+                if (!response.ok) throw new Error('Failed to load accounts');
+                const data = await response.json();
+                select.innerHTML = '<option value="">Выберите аккаунт</option>';
+                data.accounts.forEach(acc => {
+                    const option = document.createElement('option');
+                    option.value = acc.phone;
+                    option.textContent = acc.phone;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                select.innerHTML = '<option value="">Ошибка загрузки</option>';
+            }
         }
 
         async function loadTemplates() {
             const templatesList = document.getElementById('templatesList');
-            templatesList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Нет шаблонов. Создайте свой первый шаблон!</p>';
+            try {
+                const response = await fetch('/api/templates', {
+                    headers: {'Authorization': `Bearer ${getToken()}`}
+                });
+                if (!response.ok) throw new Error('Failed to load templates');
+                const data = await response.json();
+                templatesList.innerHTML = '';
+                if (data.total === 0) {
+                    templatesList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Нет шаблонов. Создайте свой первый шаблон!</p>';
+                } else {
+                    data.templates.forEach(tpl => {
+                        const item = document.createElement('div');
+                        item.className = 'template-item';
+                        item.innerHTML = `
+                            <div class="template-info">
+                                <i class="fas fa-file-alt" style="font-size: 24px; color: var(--primary);"></i>
+                                <div>
+                                    <h4>${tpl.name}</h4>
+                                    <p>${tpl.text.substring(0, 50)}...</p>
+                                </div>
+                            </div>
+                            <div class="template-actions">
+                                <button class="btn-icon btn-delete" onclick="deleteTemplate('${tpl.name}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        templatesList.appendChild(item);
+                    });
+                }
+            } catch (error) {
+                templatesList.innerHTML = '<p style="color: var(--danger); text-align: center;">Ошибка загрузки шаблонов</p>';
+            }
         }
 
         async function loadTemplatesForSelect(selectId) {
             const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Сначала создайте шаблон</option>';
+            try {
+                const response = await fetch('/api/templates', {
+                    headers: {'Authorization': `Bearer ${getToken()}`}
+                });
+                if (!response.ok) throw new Error('Failed to load templates');
+                const data = await response.json();
+                select.innerHTML = '<option value="">Выберите шаблон</option>';
+                data.templates.forEach(tpl => {
+                    const option = document.createElement('option');
+                    option.value = tpl.name;
+                    option.textContent = tpl.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                select.innerHTML = '<option value="">Ошибка загрузки</option>';
+            }
         }
 
         async function loadHistory() {
             const historyList = document.getElementById('historyList');
+            // Здесь можно добавить fetch('/api/history'), но в твоём backend нет такого эндпоинта, так что оставлю заглушку
             historyList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">История пуста</p>';
         }
 
@@ -1260,34 +1270,96 @@
             e.preventDefault();
             currentAccountPhone = document.getElementById('accountPhone').value;
 
-            // Call your API to send code
-            showAlert('Код отправлен в Telegram', 'success', 'modalAlertContainer');
-            document.getElementById('addAccountForm').classList.add('hidden');
-            document.getElementById('verifyCodeForm').classList.remove('hidden');
+            try {
+                const response = await fetch('/api/auth/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({phone: currentAccountPhone})
+                });
+                if (!response.ok) throw new Error('Failed to send code');
+                const data = await response.json();
+                phoneCodeHash = data.phone_code_hash;
+                showAlert('Код отправлен в Telegram', 'success', 'modalAlertContainer');
+                document.getElementById('addAccountForm').classList.add('hidden');
+                document.getElementById('verifyCodeForm').classList.remove('hidden');
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error', 'modalAlertContainer');
+            }
         }
 
         async function handleVerifyCode(e) {
             e.preventDefault();
             const code = document.getElementById('accountCode').value;
 
-            // Call your API to verify code
-            showAlert('Аккаунт успешно добавлен!', 'success', 'modalAlertContainer');
-            setTimeout(() => {
-                closeModal('addAccountModal');
-                loadAccounts();
-            }, 2000);
+            try {
+                const response = await fetch('/api/auth/verify-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({code, phone_code_hash: phoneCodeHash})
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    if (data.needs_password) {
+                        document.getElementById('verifyCodeForm').classList.add('hidden');
+                        document.getElementById('verify2FAForm').classList.remove('hidden');
+                        return;
+                    }
+                    throw new Error(data.message || 'Invalid code');
+                }
+                showAlert('Аккаунт успешно добавлен!', 'success', 'modalAlertContainer');
+                setTimeout(() => {
+                    closeModal('addAccountModal');
+                    loadAccounts();
+                }, 2000);
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error', 'modalAlertContainer');
+            }
         }
 
         async function handleVerify2FA(e) {
             e.preventDefault();
             const password = document.getElementById('account2FA').value;
 
-            // Call your API to verify 2FA
-            showAlert('Аккаунт успешно добавлен!', 'success', 'modalAlertContainer');
-            setTimeout(() => {
-                closeModal('addAccountModal');
+            try {
+                const response = await fetch('/api/auth/verify-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({password})
+                });
+                if (!response.ok) throw new Error('Failed to verify 2FA');
+                const data = await response.json();
+                showAlert('Аккаунт успешно добавлен!', 'success', 'modalAlertContainer');
+                setTimeout(() => {
+                    closeModal('addAccountModal');
+                    loadAccounts();
+                }, 2000);
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error', 'modalAlertContainer');
+            }
+        }
+
+        async function deleteAccount(phone) {
+            if (!confirm('Удалить аккаунт?')) return;
+            try {
+                const response = await fetch(`/api/accounts/${phone}`, {
+                    method: 'DELETE',
+                    headers: {'Authorization': `Bearer ${getToken()}`}
+                });
+                if (!response.ok) throw new Error('Failed to delete');
+                showAlert('Аккаунт удалён', 'success');
                 loadAccounts();
-            }, 2000);
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error');
+            }
         }
 
         // Template Management
@@ -1295,12 +1367,41 @@
             e.preventDefault();
             const name = document.getElementById('templateName').value;
             const text = document.getElementById('templateText').value;
+            // Здесь можно добавить file upload, если нужно (FormData)
 
-            showAlert('Шаблон создан!', 'success', 'modalAlertContainer');
-            setTimeout(() => {
-                closeModal('addTemplateModal');
+            try {
+                const response = await fetch('/api/templates/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({name, text})  // Добавь media_type, file_path если нужно
+                });
+                if (!response.ok) throw new Error('Failed to create template');
+                showAlert('Шаблон создан!', 'success', 'modalAlertContainer');
+                setTimeout(() => {
+                    closeModal('addTemplateModal');
+                    loadTemplates();
+                }, 2000);
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error', 'modalAlertContainer');
+            }
+        }
+
+        async function deleteTemplate(name) {
+            if (!confirm('Удалить шаблон?')) return;
+            try {
+                const response = await fetch(`/api/templates/${name}`, {
+                    method: 'DELETE',
+                    headers: {'Authorization': `Bearer ${getToken()}`}
+                });
+                if (!response.ok) throw new Error('Failed to delete');
+                showAlert('Шаблон удалён', 'success');
                 loadTemplates();
-            }, 2000);
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error');
+            }
         }
 
         function handleTemplateFileUpload(e) {
@@ -1317,6 +1418,7 @@
                     </button>
                 </div>
             `;
+            // Для upload: используй FormData в handleAddTemplate
         }
 
         function handleBroadcastFileUpload(e) {
@@ -1333,6 +1435,7 @@
                     </button>
                 </div>
             `;
+            // Для upload: используй FormData в sendBroadcast
         }
 
         function clearFilePreview(previewId, inputId) {
@@ -1341,40 +1444,85 @@
         }
 
         // Broadcast
-        async function sendBroadcast() {
-            const accountId = document.getElementById('broadcastAccount').value;
+        async function sendBroadcast(e) {
+            e.preventDefault();
+            const account_phone = document.getElementById('broadcastAccount').value;
             const text = document.getElementById('broadcastText').value;
+            const delay_seconds = document.getElementById('broadcastDelay').value;
 
-            if (!accountId || !text) {
+            if (!account_phone || !text) {
                 showAlert('Заполните все поля', 'error', 'alertContainer');
                 return;
             }
 
             if (!confirm('Начать рассылку?')) return;
 
-            showAlert('Рассылка начата!', 'success', 'alertContainer');
+            try {
+                const response = await fetch('/api/broadcast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({account_phone, text, delay_seconds})
+                });
+                if (!response.ok) throw new Error('Failed to broadcast');
+                showAlert('Рассылка начата!', 'success', 'alertContainer');
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error', 'alertContainer');
+            }
         }
 
         // Instant Send Settings
         async function loadInstantSettings() {
-            // Load settings for selected account
+            // Загрузи настройки для выбранного аккаунта, fetch('/api/instant/settings/{phone}')
         }
 
-        async function saveInstantSettings() {
-            showAlert('Настройки сохранены!', 'success', 'alertContainer');
+        async function saveInstantSettings(e) {
+            e.preventDefault();
+            const account_phone = document.getElementById('instantAccount').value;
+            const template_name = document.getElementById('instantTemplate').value;
+            const delay_seconds = document.getElementById('instantDelay').value;
+            const enabled = document.getElementById('instantEnabled').checked;
+
+            try {
+                const response = await fetch('/api/instant/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({account_phone, template_name, delay_seconds, enabled})
+                });
+                if (!response.ok) throw new Error('Failed to save');
+                showAlert('Настройки сохранены!', 'success', 'alertContainer');
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error', 'alertContainer');
+            }
         }
 
         // Check auth on load
         window.addEventListener('load', async () => {
-            const { session } = await manualGetSession();
-            if (session) {
-                currentUser = session.user;
-                const username = session.user.email.split('@')[0];
-                document.getElementById('usernameDisplay').textContent = username;
-                document.getElementById('userAvatar').textContent = username[0].toUpperCase();
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                loadDashboard();
+            const token = getToken();
+            if (token) {
+                // Проверь токен, напр. fetch('/api/accounts') для валидации
+                try {
+                    const response = await fetch('/api/accounts', {
+                        headers: {'Authorization': `Bearer ${token}`}
+                    });
+                    if (response.ok) {
+                        // Загрузи username из backend если нужно
+                        document.getElementById('usernameDisplay').textContent = 'User';  // Замени на реальный
+                        document.getElementById('userAvatar').textContent = 'U';
+                        document.getElementById('loginPage').style.display = 'none';
+                        document.getElementById('dashboard').style.display = 'block';
+                        loadDashboard();
+                    } else {
+                        localStorage.removeItem('token');
+                    }
+                } catch {
+                    localStorage.removeItem('token');
+                }
             }
         });
     </script>
