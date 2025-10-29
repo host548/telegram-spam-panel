@@ -4,6 +4,7 @@ Telegram Core Module
 """
 
 from telethon import TelegramClient
+from telethon.sessions import StringSession  # Добавьте этот импорт для работы со строковыми сессиями
 from telethon.errors import (
     SessionPasswordNeededError, 
     FloodWaitError, 
@@ -51,8 +52,8 @@ class TelegramUserbot:
                 self.client = None
                 self.is_authorized = False
     
-    async def create_client(self):
-        """Создание и подключение Telethon клиента"""
+    async def create_client(self, session_string: str = None):
+        """Создание и подключение Telethon клиента (с поддержкой session_string)"""
         os.makedirs("sessions", exist_ok=True)
         
         async with self.lock:
@@ -64,22 +65,35 @@ class TelegramUserbot:
                 except:
                     pass
             
-            self.client = TelegramClient(
-                self.session_name,
-                api_id=API_ID,
-                api_hash=API_HASH,
-                auto_reconnect=True,
-                connection_retries=5,
-                timeout=30,
-                flood_sleep_threshold=60
-            )
+            # Если session_string передан, используем его (для восстановления)
+            if session_string:
+                self.client = TelegramClient(
+                    StringSession(session_string),  # Используем строковую сессию
+                    api_id=API_ID,
+                    api_hash=API_HASH,
+                    auto_reconnect=True,
+                    connection_retries=5,
+                    timeout=30,
+                    flood_sleep_threshold=60
+                )
+            else:
+                # Иначе используем файловую сессию
+                self.client = TelegramClient(
+                    self.session_name,
+                    api_id=API_ID,
+                    api_hash=API_HASH,
+                    auto_reconnect=True,
+                    connection_retries=5,
+                    timeout=30,
+                    flood_sleep_threshold=60
+                )
             
             try:
                 await self.client.connect()
             except Exception as e:
                 logging.error(f"Ошибка подключения: {e}")
-                # Обработка повреждённой базы данных
-                if "database" in str(e).lower() or "locked" in str(e).lower():
+                # Обработка повреждённой базы данных (только для файловой сессии)
+                if not session_string and ("database" in str(e).lower() or "locked" in str(e).lower()):
                     try:
                         await self.client.disconnect()
                     except:
@@ -347,13 +361,13 @@ class TelegramCoreManager:
     def __init__(self):
         self.sessions = {}  # {user_id: TelegramUserbot}
     
-    async def create_session(self, user_id: int, phone: str):
-        """Создать новую сессию"""
+    async def create_session(self, user_id: int, phone: str, session_string: str = None):
+        """Создать новую сессию (с опциональным session_string для восстановления)"""
         if user_id in self.sessions:
             await self.sessions[user_id].disconnect()
         
         userbot = TelegramUserbot(user_id, phone)
-        await userbot.create_client()
+        await userbot.create_client(session_string)  # Передаём session_string сюда
         self.sessions[user_id] = userbot
         return userbot
     
