@@ -433,7 +433,7 @@ async def delete_template(template_name: str, user_id: str = Depends(get_current
 
 # Broadcast (with file upload)
 @app.post("/api/broadcast")
-async def broadcast_message(account_phone: str, text: str, delay_seconds: int = 30, chat_ids: Optional[List[int]] = None, file: UploadFile = File(None), background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def broadcast_message(account_phone: str, text: str, background_tasks: BackgroundTasks, delay_seconds: int = 30, chat_ids: Optional[List[int]] = None, file: UploadFile = File(None), user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     try:
         user_hash = int(user_id) if user_id.isdigit() else hash(user_id)
         userbot = telegram_manager.get_session(user_hash)
