@@ -82,7 +82,7 @@ engine = create_async_engine(
     ASYNC_DATABASE_URL, 
     echo=False, 
     pool_pre_ping=True,
-    connect_args=ssl_args
+    connect_args=connect_args
 )
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
@@ -868,5 +868,6 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
