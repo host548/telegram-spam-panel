@@ -71,13 +71,11 @@ else:
 # Убираем любые параметры SSL из URL если они есть
 ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.split('?')[0]
 
-# Настройки SSL для asyncpg (правильный способ для Render)
-ssl_args = {}
-if "render.com" in ASYNC_DATABASE_URL or "dpg-" in ASYNC_DATABASE_URL:
-    import ssl
-    ssl_args = {
-        "ssl": ssl.create_default_context()
-    }
+# Настройки SSL для Render
+connect_args = {}
+if "render.com" in DATABASE_URL or "dpg-" in DATABASE_URL:
+    # Для Render нужно просто передать True, asyncpg сам настроит SSL
+    connect_args["ssl"] = "require"
 
 # Создаем engine с правильными параметрами SSL
 engine = create_async_engine(
@@ -870,4 +868,5 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
