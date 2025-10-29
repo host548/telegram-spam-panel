@@ -1,14 +1,26 @@
 services:
   - type: web
-    name: telegram-scheduler-api
+    name: telegram-manager-api
     env: python
+    region: oregon
     plan: free
-    buildCommand: pip install -r requirements.txt
+    branch: main
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: python api_server.py
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: PORT
+        generateValue: true
       - key: API_ID
         sync: false
       - key: API_HASH
         sync: false
+      - key: SUPABASE_URL
+        value: https://wdmyvtyvalcczvittgci.supabase.co
+      - key: SUPABASE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXl2dHl2YWxjY3p2aXR0Z2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODU1MDMsImV4cCI6MjA3NzI2MTUwM30.E6VINGOINsxr30Se-1ZTEt1SYBdNlW8y2Foe0CzJShU
+    healthCheckPath: /health
+    autoDeploy: true
