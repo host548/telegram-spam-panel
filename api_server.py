@@ -3,14 +3,13 @@ FastAPI Server для Telegram Manager
 API сервер для работы с веб-панелью, с интеграцией Render Postgres вместо JSON.
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
 import logging
-import json
 import os
 from pathlib import Path
 import uuid
@@ -23,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.exc import SQLAlchemyError
 
-from telegram_core import TelegramCoreManager  # Предполагаю, это ваш модуль
+from telegram_core import TelegramCoreManager  # Ваш модуль для Telegram
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -39,7 +38,7 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Уточните для prod
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,9 +53,8 @@ JWT_ALGORITHM = "HS256"
 
 # DB setup (Render Postgres)
 DATABASE_URL = os.environ.get('DATABASE_URL', "postgresql://telegram_panel_user:I8nD92fSaRve81n7JUhcYptyszfZJEoj@dpg-d414kcpr0fns739ui7s0-a/telegram_panel?sslmode=require")
-# Fix for async driver
 ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
-engine = create_async_engine(ASYNC_DATABASE_URL, echo=True)  # echo для debug, удалите в prod
+engine = create_async_engine(ASYNC_DATABASE_URL, echo=True)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 class Base(DeclarativeBase):
@@ -71,14 +69,14 @@ class User(Base):
 class UserSettings(Base):
     __tablename__ = "user_settings"
     user_id: Mapped[str] = mapped_column(primary_key=True)
-    data: Mapped[dict] = mapped_column(JSON)  # Settings как JSON
+    data: Mapped[dict] = mapped_column(JSON)  # Settings, accounts, templates, stats, history
 
 class SessionInfo(Base):
     __tablename__ = "sessions"
     id: Mapped[str] = mapped_column(primary_key=True)  # user_id:phone
     data: Mapped[dict] = mapped_column(JSON)  # phone_code_hash etc.
 
-# Инициализация DB (создаёт таблицы если не существуют)
+# Инициализация DB
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -113,31 +111,25 @@ class LoginRequest(BaseModel):
     password: str
 
 class AuthStartRequest(BaseModel):
-    phone: str  # user_id из Depends
+    phone: str
 
 class AuthCodeRequest(BaseModel):
     code: str
-    phone_code_hash: str  # user_id из Depends
+    phone_code_hash: str
 
 class AuthPasswordRequest(BaseModel):
-    password: str  # user_id из Depends
-
-class AccountInfo(BaseModel):
-    phone: str
-    status: str = "active"
+    password: str
 
 class BroadcastRequest(BaseModel):
     account_phone: str
     text: str
     delay_seconds: int = 30
     chat_ids: Optional[List[int]] = None
-    file_path: Optional[str] = None
 
 class TemplateCreate(BaseModel):
     name: str
     text: str
     media_type: Optional[str] = None
-    file_path: Optional[str] = None
 
 class InstantSettingsRequest(BaseModel):
     account_phone: str
@@ -145,7 +137,7 @@ class InstantSettingsRequest(BaseModel):
     template_name: Optional[str] = None
     delay_seconds: int = 30
 
-# Главная страница
+# Главная страница (web_panel.html)
 @app.get("/", response_class=HTMLResponse)
 async def serve_web_panel():
     try:
@@ -153,10 +145,7 @@ async def serve_web_panel():
         if panel_path.exists():
             return FileResponse(panel_path)
         else:
-            return HTMLResponse(
-                content="""<html><head><title>Telegram Manager</title><style>body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; } .container { text-align: center; padding: 40px; background: rgba(255,255,255,0.1); border-radius: 20px; backdrop-filter: blur(10px); } h1 { margin: 0 0 20px 0; } a { color: #fff; text-decoration: underline; }</style></head><body><div class="container"><h1>🚀 Telegram Manager API</h1><p>API сервер успешно запущен!</p><p>📖 Документация: <a href="/docs">/docs</a></p><p>💚 Статус: <a href="/health">/health</a></p></div></body></html>""",
-                status_code=200
-            )
+            return HTMLResponse(content="Панель не найдена", status_code=404)
     except Exception as e:
         logging.error(f"Ошибка загрузки панели: {e}")
         raise HTTPException(status_code=500, detail="Ошибка загрузки панели")
@@ -164,12 +153,7 @@ async def serve_web_panel():
 # Health check
 @app.get("/health")
 async def health_check():
-    return {
-        "status": "healthy",
-        "service": "Telegram Manager API",
-        "version": "2.0",
-        "timestamp": datetime.now().isoformat()
-    }
+    return {"status": "healthy", "version": "2.0"}
 
 # Регистрация
 @app.post("/api/register")
@@ -184,6 +168,8 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
         new_user = User(username=request.username, password_hash=hashed, user_id=user_id)
         db.add(new_user)
         await db.commit()
+        # Инициализируем user_settings
+        await update_user_data(user_id, {'accounts': {}, 'templates': {}, 'stats': {'sent': 0, 'success': 0, 'failed': 0}, 'history': []}, db)
         return {"success": True, "message": "Registered", "user_id": user_id}
     except SQLAlchemyError as e:
         await db.rollback()
@@ -209,7 +195,7 @@ async def get_user_data(user_id: str, db: AsyncSession) -> dict:
     try:
         result = await db.execute(select(UserSettings.data).where(UserSettings.user_id == user_id))
         data = result.scalar()
-        return data if data else {}
+        return data if data else {'accounts': {}, 'templates': {}, 'stats': {'sent': 0, 'success': 0, 'failed': 0}, 'history': []}
     except SQLAlchemyError as e:
         logging.error(f"DB error get_user_data: {e}")
         raise HTTPException(status_code=500, detail="Database error")
@@ -233,10 +219,7 @@ async def update_user_data(user_id: str, new_data: dict, db: AsyncSession):
 # Save session info
 async def save_session_info(user_id: str, phone: str, phone_code_hash: str, db: AsyncSession):
     session_id = f"{user_id}:{phone}"
-    data = {
-        'phone_code_hash': phone_code_hash,
-        'timestamp': datetime.now().isoformat()
-    }
+    data = {'phone_code_hash': phone_code_hash, 'timestamp': datetime.now().isoformat()}
     try:
         session_query = await db.execute(select(SessionInfo).where(SessionInfo.id == session_id))
         obj = session_query.scalar_one_or_none()
@@ -279,29 +262,19 @@ async def verify_code(request: AuthCodeRequest, user_id: str = Depends(get_curre
         user_hash = int(user_id) if user_id.isdigit() else hash(user_id)
         userbot = telegram_manager.get_session(user_hash)
         if not userbot:
-            raise HTTPException(status_code=404, detail="Сессия не найдена. Начните авторизацию заново")
+            raise HTTPException(status_code=404, detail="Сессия не найдена")
         result = await userbot.sign_in(request.code, request.phone_code_hash)
         if result.get("success"):
             me = await userbot.client.get_me()
             user_data = await get_user_data(user_id, db)
-            if 'accounts' not in user_data:
-                user_data['accounts'] = {}
             user_data['accounts'][me.phone] = {
                 'status': 'active',
-                'username': me.username or 'Нет username',
+                'username': me.username or '',
                 'first_name': me.first_name or '',
                 'auth_date': datetime.now().isoformat()
             }
             await update_user_data(user_id, user_data, db)
-            return {
-                "success": True,
-                "message": "Авторизация успешна!",
-                "account": {
-                    "phone": me.phone,
-                    "username": me.username,
-                    "name": f"{me.first_name or ''} {me.last_name or ''}".strip()
-                }
-            }
+            return {"success": True, "message": "Авторизация успешна!", "account": {"phone": me.phone, "username": me.username, "name": f"{me.first_name} {me.last_name}".strip()}}
         elif result.get("needs_password"):
             return {"success": False, "needs_password": True, "message": "Требуется 2FA пароль"}
         else:
@@ -322,24 +295,14 @@ async def verify_password(request: AuthPasswordRequest, user_id: str = Depends(g
         if success:
             me = await userbot.client.get_me()
             user_data = await get_user_data(user_id, db)
-            if 'accounts' not in user_data:
-                user_data['accounts'] = {}
             user_data['accounts'][me.phone] = {
                 'status': 'active',
-                'username': me.username or 'Нет username',
+                'username': me.username or '',
                 'first_name': me.first_name or '',
                 'auth_date': datetime.now().isoformat()
             }
             await update_user_data(user_id, user_data, db)
-            return {
-                "success": True,
-                "message": "Авторизация с 2FA успешна!",
-                "account": {
-                    "phone": me.phone,
-                    "username": me.username,
-                    "name": f"{me.first_name or ''} {me.last_name or ''}".strip()
-                }
-            }
+            return {"success": True, "message": "Авторизация с 2FA успешна!", "account": {"phone": me.phone, "username": me.username, "name": f"{me.first_name} {me.last_name}".strip()}}
         else:
             raise HTTPException(status_code=400, detail="Неверный пароль")
     except Exception as e:
@@ -355,13 +318,7 @@ async def get_accounts(user_id: str = Depends(get_current_user), db: AsyncSessio
         return {
             "success": True,
             "accounts": [
-                {
-                    "phone": phone,
-                    "status": info.get('status', 'unknown'),
-                    "username": info.get('username', ''),
-                    "first_name": info.get('first_name', ''),
-                    "auth_date": info.get('auth_date', '')
-                }
+                {"phone": phone, "status": info.get('status', 'unknown'), "username": info.get('username', ''), "first_name": info.get('first_name', ''), "auth_date": info.get('auth_date', '')}
                 for phone, info in accounts.items()
             ],
             "total": len(accounts)
@@ -387,6 +344,30 @@ async def delete_account(phone: str, user_id: str = Depends(get_current_user), d
         logging.error(f"Ошибка delete_account: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
+# New: Get contacts for account
+@app.get("/api/accounts/{phone}/contacts")
+async def get_contacts(phone: str, user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    try:
+        user_hash = int(user_id) if user_id.isdigit() else hash(user_id)
+        userbot = telegram_manager.get_session(user_hash)
+        if not userbot:
+            raise HTTPException(status_code=404, detail="Сессия не найдена")
+        all_dialogs = await userbot.get_dialogs()
+        contacts = []
+        for d in all_dialogs:
+            type_ = 'private' if d.get('type') == 'user' else 'group' if d.get('type') == 'chat' else 'channel'
+            contacts.append({
+                "id": d['id'],
+                "name": d['name'],
+                "username": d.get('username', ''),
+                "type": type_,
+                "avatar": d['name'][0].upper() if d['name'] else '?'  # Для frontend
+            })
+        return {"success": True, "contacts": contacts}
+    except Exception as e:
+        logging.error(f"Ошибка get_contacts: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
 # Get templates
 @app.get("/api/templates")
 async def get_templates(user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
@@ -396,12 +377,7 @@ async def get_templates(user_id: str = Depends(get_current_user), db: AsyncSessi
         return {
             "success": True,
             "templates": [
-                {
-                    "name": name,
-                    "text": info.get('text', ''),
-                    "media_type": info.get('media_type'),
-                    "created_at": info.get('created_at', '')
-                }
+                {"name": name, "text": info.get('text', ''), "media_type": info.get('media_type'), "created_at": info.get('created_at', '')}
                 for name, info in templates.items()
             ],
             "total": len(templates)
@@ -410,23 +386,28 @@ async def get_templates(user_id: str = Depends(get_current_user), db: AsyncSessi
         logging.error(f"Ошибка get_templates: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-# Create template
+# Create template (with file upload)
 @app.post("/api/templates/create")
-async def create_template(request: TemplateCreate, user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def create_template(name: str, text: str, media_type: Optional[str] = None, file: UploadFile = File(None), user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     try:
         user_data = await get_user_data(user_id, db)
         if 'templates' not in user_data:
             user_data['templates'] = {}
-        if request.name in user_data['templates']:
-            raise HTTPException(status_code=400, detail="Шаблон с таким именем уже существует")
-        user_data['templates'][request.name] = {
-            'text': request.text,
-            'media_type': request.media_type,
-            'file_path': request.file_path,
-            'created_at': datetime.now().strftime('%d.%m.%Y %H:%M')
+        if name in user_data['templates']:
+            raise HTTPException(status_code=400, detail="Шаблон существует")
+        file_path = None
+        if file:
+            file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
+            with open(file_path, "wb") as f:
+                f.write(await file.read())
+        user_data['templates'][name] = {
+            'text': text,
+            'media_type': media_type,
+            'file_path': file_path,
+            'created_at': datetime.now().isoformat()
         }
         await update_user_data(user_id, user_data, db)
-        return {"success": True, "message": f"Шаблон '{request.name}' создан"}
+        return {"success": True, "message": f"Шаблон '{name}' создан"}
     except Exception as e:
         logging.error(f"Ошибка create_template: {e}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -437,6 +418,10 @@ async def delete_template(template_name: str, user_id: str = Depends(get_current
     try:
         user_data = await get_user_data(user_id, db)
         if template_name in user_data.get('templates', {}):
+            # Удалить файл если есть
+            file_path = user_data['templates'][template_name].get('file_path')
+            if file_path and os.path.exists(file_path):
+                os.remove(file_path)
             del user_data['templates'][template_name]
             await update_user_data(user_id, user_data, db)
             return {"success": True, "message": f"Шаблон '{template_name}' удалён"}
@@ -446,37 +431,44 @@ async def delete_template(template_name: str, user_id: str = Depends(get_current
         logging.error(f"Ошибка delete_template: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-# Broadcast
+# Broadcast (with file upload)
 @app.post("/api/broadcast")
-async def broadcast_message(request: BroadcastRequest, background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def broadcast_message(account_phone: str, text: str, delay_seconds: int = 30, chat_ids: Optional[List[int]] = None, file: UploadFile = File(None), background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     try:
         user_hash = int(user_id) if user_id.isdigit() else hash(user_id)
         userbot = telegram_manager.get_session(user_hash)
         if not userbot:
             raise HTTPException(status_code=404, detail="Сессия не найдена")
         all_dialogs = await userbot.get_dialogs()
-        if request.chat_ids:
-            dialogs = [d for d in all_dialogs if d['id'] in request.chat_ids]
-        else:
-            dialogs = all_dialogs
+        dialogs = [d for d in all_dialogs if d['id'] in chat_ids] if chat_ids else all_dialogs
         if not dialogs:
-            raise HTTPException(status_code=400, detail="Нет чатов для рассылки")
-        schedule_dt = datetime.now() + timedelta(seconds=request.delay_seconds)
-        successful, failed = await userbot.broadcast_message(dialogs, request.text, schedule_dt)
+            raise HTTPException(status_code=400, detail="Нет чатов")
+        file_path = None
+        if file:
+            file_path = f"uploads/{uuid.uuid4()}_{file.filename}"
+            with open(file_path, "wb") as f:
+                f.write(await file.read())
+        schedule_dt = datetime.now() + timedelta(seconds=delay_seconds)
+        successful, failed = await userbot.broadcast_message(dialogs, text, schedule_dt, file_path)
         user_data = await get_user_data(user_id, db)
         stats = user_data.get('stats', {'sent': 0, 'success': 0, 'failed': 0})
         stats['sent'] += len(dialogs)
         stats['success'] += successful
         stats['failed'] += failed
-        user_data['stats'] = stats
-        await update_user_data(user_id, user_data, db)
-        return {
-            "success": True,
-            "total": len(dialogs),
-            "successful": successful,
-            "failed": failed,
-            "schedule_time": schedule_dt.isoformat()
-        }
+        # Добавляем в историю
+        history = user_data.get('history', [])
+        history.append({
+            'date': datetime.now().isoformat(),
+            'total': len(dialogs),
+            'successful': successful,
+            'failed': failed,
+            'account_phone': account_phone
+        })
+        await update_user_data(user_id, {'stats': stats, 'history': history}, db)
+        # Удалить файл после
+        if file_path and os.path.exists(file_path):
+            os.remove(file_path)
+        return {"success": True, "total": len(dialogs), "successful": successful, "failed": failed, "schedule_time": schedule_dt.isoformat()}
     except Exception as e:
         logging.error(f"Ошибка broadcast: {e}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -505,11 +497,7 @@ async def save_instant_settings(request: InstantSettingsRequest, user_id: str = 
 async def get_instant_settings(phone: str, user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     try:
         user_data = await get_user_data(user_id, db)
-        settings = user_data.get('instant_settings', {}).get(phone, {
-            'enabled': False,
-            'template_name': None,
-            'delay_seconds': 30
-        })
+        settings = user_data.get('instant_settings', {}).get(phone, {'enabled': False, 'template_name': None, 'delay_seconds': 30})
         return {"success": True, "settings": settings}
     except Exception as e:
         logging.error(f"Ошибка get_instant_settings: {e}")
@@ -531,30 +519,17 @@ async def get_stats(user_id: str = Depends(get_current_user), db: AsyncSession =
         logging.error(f"Ошибка get_stats: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
-# API status
-@app.get("/api/status")
-async def api_status():
-    return {
-        "status": "online",
-        "message": "API работает нормально",
-        "endpoints": {
-            "auth": "/api/auth/*",
-            "accounts": "/api/accounts/*",
-            "templates": "/api/templates/*",
-            "broadcast": "/api/broadcast",
-            "docs": "/docs"
-        }
-    }
+# New: Get history
+@app.get("/api/history")
+async def get_history(user_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    try:
+        user_data = await get_user_data(user_id, db)
+        return {"success": True, "history": user_data.get('history', [])}
+    except Exception as e:
+        logging.error(f"Ошибка get_history: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    print("=" * 80)
-    print("🚀 Telegram Manager API Server v2.0")
-    print("=" * 80)
-    print(f"\n📡 Запуск на 0.0.0.0:{port}")
-    print(f"📖 Документация: http://0.0.0.0:{port}/docs")
-    print(f"💚 Health Check: http://0.0.0.0:{port}/health")
-    print(f"🌐 Веб-панель: http://0.0.0.0:{port}/")
-    print("\n" + "=" * 80)
     uvicorn.run(app, host="0.0.0.0", port=port)
