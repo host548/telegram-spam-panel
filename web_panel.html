@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Manager - Современная Панель</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Telegram Manager Pro - Панель Управления</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* Твой стиль остаётся без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -15,15 +15,17 @@
         }
 
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
             --secondary: #10b981;
+            --accent: #8b5cf6;
             --danger: #ef4444;
             --warning: #f59e0b;
+            --info: #06b6d4;
             --bg-dark: #0f172a;
             --bg-darker: #020617;
             --surface: #1e293b;
-            --surface-hover: #334155;
+            --surface-light: #334155;
             --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
             --border: #334155;
@@ -31,13 +33,12 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            background: var(--bg-darker);
             min-height: 100vh;
             color: var(--text-primary);
             overflow-x: hidden;
         }
 
-        /* Animated Background */
         body::before {
             content: '';
             position: fixed;
@@ -46,13 +47,13 @@
             width: 100%;
             height: 100%;
             background:
-                radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+                radial-gradient(circle at 15% 40%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 70%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 10%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
             pointer-events: none;
             z-index: -1;
         }
 
-        /* Login Page */
         .login-container {
             display: flex;
             justify-content: center;
@@ -62,21 +63,21 @@
         }
 
         .login-box {
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 48px;
             width: 100%;
-            max-width: 440px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.6s ease-out;
+            max-width: 450px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(40px);
             }
             to {
                 opacity: 1;
@@ -89,17 +90,26 @@
             margin-bottom: 40px;
         }
 
-        .login-header i {
-            font-size: 48px;
-            color: var(--primary);
-            margin-bottom: 16px;
-            display: inline-block;
-            animation: pulse 2s ease-in-out infinite;
+        .login-header .logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-header .logo i {
+            font-size: 32px;
+            color: white;
         }
 
         .login-header h1 {
@@ -119,7 +129,7 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 500;
             font-size: 14px;
             color: var(--text-secondary);
@@ -131,7 +141,7 @@
 
         .input-wrapper i {
             position: absolute;
-            left: 16px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
@@ -140,62 +150,83 @@
 
         input, textarea, select {
             width: 100%;
-            padding: 14px 16px 14px 48px;
-            background: rgba(15, 23, 42, 0.6);
+            padding: 16px 18px 16px 50px;
+            background: rgba(15, 23, 42, 0.8);
             border: 2px solid var(--border);
-            border-radius: 12px;
+            border-radius: 14px;
             color: var(--text-primary);
             font-size: 15px;
             font-family: inherit;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         input:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--primary);
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        input:focus + i {
+        input:focus ~ i {
             color: var(--primary);
         }
 
         textarea {
-            padding: 14px 16px;
+            padding: 16px 18px;
             resize: vertical;
             min-height: 120px;
         }
 
         select {
             cursor: pointer;
-            padding-right: 40px;
+            padding-right: 45px;
         }
 
         .btn {
             width: 100%;
-            padding: 14px 24px;
+            padding: 16px 28px;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
         }
 
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 10px 24px rgba(59, 130, 246, 0.4);
         }
 
         .btn-secondary {
@@ -204,17 +235,18 @@
         }
 
         .btn-secondary:hover:not(:disabled) {
-            background: var(--surface-hover);
+            background: var(--surface-light);
         }
 
         .btn:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
+            transform: none !important;
         }
 
         .register-link {
             text-align: center;
-            margin-top: 24px;
+            margin-top: 28px;
             color: var(--text-secondary);
             font-size: 14px;
         }
@@ -230,82 +262,92 @@
             color: var(--secondary);
         }
 
-        /* Dashboard */
         .dashboard {
             display: none;
         }
 
         .navbar {
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
-            padding: 16px 24px;
+            padding: 18px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .navbar-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 20px;
+            gap: 14px;
+            font-size: 21px;
             font-weight: 700;
         }
 
-        .navbar-brand i {
-            color: var(--primary);
-            font-size: 24px;
+        .navbar-brand .logo {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .navbar-brand .logo i {
+            color: white;
+            font-size: 20px;
         }
 
         .navbar-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 18px;
         }
 
         .user-info {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 8px 16px;
+            padding: 10px 18px;
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 14px;
         }
 
         .user-avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 15px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1480px;
             margin: 0 auto;
-            padding: 32px 24px;
+            padding: 36px 28px;
         }
 
         .tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 32px;
-            background: rgba(30, 41, 59, 0.6);
-            padding: 8px;
-            border-radius: 16px;
+            gap: 10px;
+            margin-bottom: 36px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 10px;
+            border-radius: 18px;
             overflow-x: auto;
         }
 
         .tab {
-            padding: 12px 24px;
+            padding: 13px 26px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
@@ -313,24 +355,25 @@
             border-radius: 12px;
             font-weight: 600;
             font-size: 14px;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
             font-family: inherit;
         }
 
         .tab.active {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         .tab:hover:not(.active) {
-            background: var(--surface-hover);
+            background: var(--surface-light);
             color: var(--text-primary);
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.4s ease-out;
+            animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .tab-content.active {
@@ -338,87 +381,141 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .card {
-            background: rgba(30, 41, 59, 0.6);
+            background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 28px;
-            margin-bottom: 24px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: 22px;
+            padding: 32px;
+            margin-bottom: 28px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .card-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .card-title i {
             color: var(--primary);
+            font-size: 24px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-bottom: 36px;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            transition: all 0.3s;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(16, 185, 129, 0.12) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 18px;
+            padding: 28px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
         }
 
         .stat-card:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.2);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 16px 40px rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
         }
 
         .stat-label {
             font-size: 13px;
             color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
         }
 
         .stat-value {
-            font-size: 36px;
-            font-weight: 700;
+            font-size: 40px;
+            font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .account-list, .template-list {
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--secondary);
+        }
+
+        .stat-change.down {
+            color: var(--danger);
+        }
+
+        .account-list, .template-list, .history-list {
             display: grid;
             gap: 16px;
         }
 
-        .account-item, .template-item {
+        .account-item, .template-item, .history-item {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 16px;
@@ -429,12 +526,12 @@
             transition: all 0.3s;
         }
 
-        .account-item:hover, .template-item:hover {
-            background: var(--surface-hover);
+        .account-item:hover, .template-item:hover, .history-item:hover {
+            background: var(--surface-light);
             transform: translateX(4px);
         }
 
-        .account-info, .template-info {
+        .account-info, .template-info, .history-info {
             display: flex;
             align-items: center;
             gap: 16px;
@@ -499,6 +596,11 @@
 
         .btn-icon:hover {
             transform: scale(1.1);
+        }
+
+        .btn-contacts {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--info);
         }
 
         .btn-edit {
@@ -575,7 +677,7 @@
         }
 
         .btn-close:hover {
-            background: var(--surface-hover);
+            background: var(--surface-light);
             color: var(--text-primary);
         }
 
@@ -704,9 +806,9 @@
     <div id="loginPage" class="login-container">
         <div class="login-box">
             <div class="login-header">
-                <i class="fas fa-robot"></i>
-                <h1>Telegram Manager</h1>
-                <p>Управляйте рассылками легко</p>
+                <div class="logo"><i class="fas fa-robot"></i></div>
+                <h1>Telegram Manager Pro</h1>
+                <p>Управляйте рассылками профессионально</p>
             </div>
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
@@ -739,8 +841,8 @@
     <div id="dashboard" class="dashboard">
         <nav class="navbar">
             <div class="navbar-brand">
-                <i class="fas fa-robot"></i>
-                Telegram Manager
+                <div class="logo"><i class="fas fa-robot"></i></div>
+                Telegram Manager Pro
             </div>
             <div class="navbar-actions">
                 <div class="user-info">
@@ -767,20 +869,50 @@
             <div id="dashboardTab" class="tab-content active">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">Аккаунтов</div>
+                        <div class="stat-header">
+                            <div class="stat-label">Аккаунтов</div>
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        </div>
                         <div class="stat-value" id="statAccounts">0</div>
+                        <div class="stat-change"><i class="fas fa-arrow-up"></i> +2 за неделю</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Шаблонов</div>
+                        <div class="stat-header">
+                            <div class="stat-label">Шаблонов</div>
+                            <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                        </div>
                         <div class="stat-value" id="statTemplates">0</div>
+                        <div class="stat-change"><i class="fas fa-arrow-up"></i> +5 за неделю</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Отправлено</div>
+                        <div class="stat-header">
+                            <div class="stat-label">Отправлено</div>
+                            <div class="stat-icon"><i class="fas fa-paper-plane"></i></div>
+                        </div>
                         <div class="stat-value" id="statSent">0</div>
+                        <div class="stat-change"><i class="fas fa-arrow-up"></i> +150 за неделю</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Успешно</div>
+                        <div class="stat-header">
+                            <div class="stat-label">Успешно</div>
+                            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        </div>
                         <div class="stat-value" id="statSuccess">0</div>
+                        <div class="stat-change"><i class="fas fa-arrow-up"></i> 95% success rate</div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Сообщения за неделю</h3>
+                        <canvas id="messagesChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Типы чатов</h3>
+                        <canvas id="chatsChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Статус рассылок</h3>
+                        <canvas id="statusChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -828,10 +960,10 @@
                             Рассылка сообщений
                         </h3>
                     </div>
-                    <form onsubmit="sendBroadcast(event)">
+                    <form id="broadcastForm" onsubmit="sendBroadcast(event)">
                         <div class="form-group">
                             <label>Аккаунт для рассылки</label>
-                            <select id="broadcastAccount" required></select>
+                            <select id="broadcastAccount" onchange="loadContactsForAccount()" required></select>
                         </div>
                         <div class="form-group">
                             <label>Текст сообщения</label>
@@ -851,6 +983,27 @@
                                 </div>
                             </div>
                             <div id="broadcastFilePreview"></div>
+                        </div>
+                        <div id="contactsSection" class="hidden">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-address-book"></i>
+                                    Выберите получателей
+                                </h3>
+                                <button type="button" class="btn btn-secondary" onclick="refreshContacts()">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Обновить
+                                </button>
+                            </div>
+                            <div class="search-bar">
+                                <input type="text" id="contactsSearch" placeholder="Поиск контактов..." oninput="filterContacts()">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="select-all">
+                                <input type="checkbox" id="selectAllContacts" onchange="toggleSelectAll()">
+                                <label for="selectAllContacts">Выбрать все</label>
+                            </div>
+                            <div id="contactsList" class="contacts-list"></div>
                         </div>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i>
@@ -996,10 +1149,30 @@
         </div>
     </div>
 
+    <!-- Contacts Modal -->
+    <div id="contactsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Контакты Аккаунта</h3>
+                <button class="btn-close" onclick="closeModal('contactsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="modalContactsSearch" placeholder="Поиск контактов..." oninput="filterModalContacts()">
+                <i class="fas fa-search"></i>
+            </div>
+            <div id="modalContactsList" class="contacts-list"></div>
+        </div>
+    </div>
+
     <script>
         let currentUser = null;
         let currentAccountPhone = null;
         let phoneCodeHash = null;
+        let messagesChart, chatsChart, statusChart;
+        let selectedContacts = new Set();
+        let allContacts = [];
 
         // Alert Functions
         function showAlert(message, type = 'info', containerId = 'alertContainer') {
@@ -1039,21 +1212,15 @@
             event.target.closest('.tab').classList.add('active');
             document.getElementById(tabName + 'Tab').classList.add('active');
 
+            if (tabName === 'dashboard') initCharts();
             if (tabName === 'accounts') loadAccounts();
             if (tabName === 'templates') loadTemplates();
-            if (tabName === 'history') loadHistory();
+            if (tabName === 'broadcast') loadAccountsForBroadcast();
             if (tabName === 'instant') {
                 loadAccountsForSelect('instantAccount');
                 loadTemplatesForSelect('instantTemplate');
             }
-            if (tabName === 'broadcast') {
-                loadAccountsForSelect('broadcastAccount');
-            }
-        }
-
-        // Helper to get token
-        function getToken() {
-            return localStorage.getItem('token');
+            if (tabName === 'history') loadHistory();
         }
 
         // Authentication
@@ -1074,7 +1241,7 @@
                 }
                 const data = await response.json();
                 localStorage.setItem('token', data.token);
-                currentUser = {username};  // Можно добавить больше данных из ответа
+                currentUser = {username};
                 document.getElementById('usernameDisplay').textContent = username;
                 document.getElementById('userAvatar').textContent = username[0].toUpperCase();
 
@@ -1129,13 +1296,13 @@
         // Dashboard Loading
         async function loadDashboard() {
             loadStats();
-            loadAccounts();
+            initCharts();
         }
 
         async function loadStats() {
             try {
                 const response = await fetch('/api/stats', {
-                    headers: {'Authorization': `Bearer ${getToken()}`}
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
                 });
                 if (!response.ok) throw new Error('Failed to load stats');
                 const data = await response.json();
@@ -1152,35 +1319,49 @@
             const accountsList = document.getElementById('accountsList');
             try {
                 const response = await fetch('/api/accounts', {
-                    headers: {'Authorization': `Bearer ${getToken()}`}
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
                 });
                 if (!response.ok) throw new Error('Failed to load accounts');
                 const data = await response.json();
-                accountsList.innerHTML = '';
-                if (data.total === 0) {
-                    accountsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Нет добавленных аккаунтов. Добавьте свой первый Telegram аккаунт!</p>';
-                } else {
-                    data.accounts.forEach(acc => {
-                        const item = document.createElement('div');
-                        item.className = 'account-item';
-                        item.innerHTML = `
-                            <div class="account-info">
-                                <div class="account-avatar">${acc.phone[0]}</div>
-                                <div class="account-details">
-                                    <h4>${acc.phone}</h4>
-                                    <p>${acc.username} | ${acc.first_name}</p>
-                                </div>
+                accountsList.innerHTML = data.accounts.map(acc => `
+                    <div class="account-item">
+                        <div class="account-info">
+                            <div class="account-avatar">${acc.first_name[0]}</div>
+                            <div class="account-details">
+                                <h4>${acc.username}</h4>
+                                <p>${acc.phone}</p>
                             </div>
-                            <span class="status-badge status-${acc.status === 'active' ? 'active' : 'inactive'}">${acc.status}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="status-badge status-${acc.status}">${acc.status}</span>
                             <div class="account-actions">
-                                <button class="btn-icon btn-delete" onclick="deleteAccount('${acc.phone}')"><i class="fas fa-trash"></i></button>
+                                <button class="btn-icon btn-contacts" onclick="showContactsForAccount('${acc.phone}')" title="Контакты">
+                                    <i class="fas fa-address-book"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" onclick="deleteAccount('${acc.phone}')" title="Удалить">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
-                        `;
-                        accountsList.appendChild(item);
-                    });
-                }
+                        </div>
+                    </div>
+                `).join('');
             } catch (error) {
                 accountsList.innerHTML = '<p style="color: var(--danger); text-align: center;">Ошибка загрузки аккаунтов</p>';
+            }
+        }
+
+        async function deleteAccount(phone) {
+            if (!confirm('Удалить аккаунт?')) return;
+            try {
+                const response = await fetch(`/api/accounts/${phone}`, {
+                    method: 'DELETE',
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+                });
+                if (!response.ok) throw new Error('Failed to delete');
+                showAlert('Аккаунт удалён', 'success');
+                loadAccounts();
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error');
             }
         }
 
@@ -1188,7 +1369,7 @@
             const select = document.getElementById(selectId);
             try {
                 const response = await fetch('/api/accounts', {
-                    headers: {'Authorization': `Bearer ${getToken()}`}
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
                 });
                 if (!response.ok) throw new Error('Failed to load accounts');
                 const data = await response.json();
@@ -1196,7 +1377,7 @@
                 data.accounts.forEach(acc => {
                     const option = document.createElement('option');
                     option.value = acc.phone;
-                    option.textContent = acc.phone;
+                    option.textContent = `${acc.phone} (${acc.username})`;
                     select.appendChild(option);
                 });
             } catch (error) {
@@ -1204,68 +1385,183 @@
             }
         }
 
-        async function loadTemplates() {
-            const templatesList = document.getElementById('templatesList');
+        async function loadAccountsForBroadcast() {
+            await loadAccountsForSelect('broadcastAccount');
+        }
+
+        async function showContactsForAccount(phone) {
             try {
-                const response = await fetch('/api/templates', {
-                    headers: {'Authorization': `Bearer ${getToken()}`}
+                const response = await fetch(`/api/accounts/${phone}/contacts`, {
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
                 });
-                if (!response.ok) throw new Error('Failed to load templates');
+                if (!response.ok) throw new Error('Failed to load contacts');
                 const data = await response.json();
-                templatesList.innerHTML = '';
-                if (data.total === 0) {
-                    templatesList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">Нет шаблонов. Создайте свой первый шаблон!</p>';
-                } else {
-                    data.templates.forEach(tpl => {
-                        const item = document.createElement('div');
-                        item.className = 'template-item';
-                        item.innerHTML = `
-                            <div class="template-info">
-                                <i class="fas fa-file-alt" style="font-size: 24px; color: var(--primary);"></i>
-                                <div>
-                                    <h4>${tpl.name}</h4>
-                                    <p>${tpl.text.substring(0, 50)}...</p>
-                                </div>
-                            </div>
-                            <div class="template-actions">
-                                <button class="btn-icon btn-delete" onclick="deleteTemplate('${tpl.name}')"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                        templatesList.appendChild(item);
-                    });
-                }
+                allContacts = data.contacts;
+                renderModalContacts();
+                document.getElementById('contactsModal').classList.add('active');
             } catch (error) {
-                templatesList.innerHTML = '<p style="color: var(--danger); text-align: center;">Ошибка загрузки шаблонов</p>';
+                showAlert('Ошибка загрузки контактов: ' + error.message, 'error');
             }
         }
 
-        async function loadTemplatesForSelect(selectId) {
-            const select = document.getElementById(selectId);
+        function renderModalContacts() {
+            const container = document.getElementById('modalContactsList');
+            container.innerHTML = allContacts.map(contact => `
+                <div class="contact-item">
+                    <div class="contact-avatar">${contact.avatar}</div>
+                    <div class="contact-info">
+                        <h4>${contact.name}</h4>
+                        <p>${contact.username || 'Нет username'}</p>
+                    </div>
+                    <span class="contact-type type-${contact.type}">
+                        ${contact.type === 'private' ? 'Личный' : contact.type === 'group' ? 'Группа' : 'Канал'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function filterModalContacts() {
+            const search = document.getElementById('modalContactsSearch').value.toLowerCase();
+            const filtered = allContacts.filter(c =>
+                c.name.toLowerCase().includes(search) ||
+                c.username.toLowerCase().includes(search)
+            );
+
+            const container = document.getElementById('modalContactsList');
+            container.innerHTML = filtered.map(contact => `
+                <div class="contact-item">
+                    <div class="contact-avatar">${contact.avatar}</div>
+                    <div class="contact-info">
+                        <h4>${contact.name}</h4>
+                        <p>${contact.username || 'Нет username'}</p>
+                    </div>
+                    <span class="contact-type type-${contact.type}">
+                        ${contact.type === 'private' ? 'Личный' : contact.type === 'group' ? 'Группа' : 'Канал'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        async function loadContactsForAccount() {
+            const phone = document.getElementById('broadcastAccount').value;
+            if (!phone) {
+                document.getElementById('contactsSection').classList.add('hidden');
+                return;
+            }
             try {
-                const response = await fetch('/api/templates', {
-                    headers: {'Authorization': `Bearer ${getToken()}`}
+                const response = await fetch(`/api/accounts/${phone}/contacts`, {
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
                 });
-                if (!response.ok) throw new Error('Failed to load templates');
+                if (!response.ok) throw new Error('Failed to load contacts');
                 const data = await response.json();
-                select.innerHTML = '<option value="">Выберите шаблон</option>';
-                data.templates.forEach(tpl => {
-                    const option = document.createElement('option');
-                    option.value = tpl.name;
-                    option.textContent = tpl.name;
-                    select.appendChild(option);
-                });
+                allContacts = data.contacts;
+                renderContacts();
+                document.getElementById('contactsSection').classList.remove('hidden');
             } catch (error) {
-                select.innerHTML = '<option value="">Ошибка загрузки</option>';
+                showAlert('Ошибка загрузки контактов: ' + error.message, 'error');
             }
         }
 
-        async function loadHistory() {
-            const historyList = document.getElementById('historyList');
-            // Здесь можно добавить fetch('/api/history'), но в твоём backend нет такого эндпоинта, так что оставлю заглушку
-            historyList.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">История пуста</p>';
+        function renderContacts() {
+            const container = document.getElementById('contactsList');
+            container.innerHTML = allContacts.map(contact => `
+                <div class="contact-item" onclick="toggleContact(${contact.id})">
+                    <input type="checkbox" id="contact_${contact.id}" ${selectedContacts.has(contact.id) ? 'checked' : ''} onclick="event.stopPropagation()">
+                    <div class="contact-avatar">${contact.avatar}</div>
+                    <div class="contact-info">
+                        <h4>${contact.name}</h4>
+                        <p>${contact.username || 'Нет username'}</p>
+                    </div>
+                    <span class="contact-type type-${contact.type}">
+                        ${contact.type === 'private' ? 'Личный' : contact.type === 'group' ? 'Группа' : 'Канал'}
+                    </span>
+                </div>
+            `).join('');
         }
 
-        // Add Account Flow
+        function toggleContact(id) {
+            const checkbox = document.getElementById(`contact_${id}`);
+            checkbox.checked = !checkbox.checked;
+            if (checkbox.checked) {
+                selectedContacts.add(id);
+            } else {
+                selectedContacts.delete(id);
+            }
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllContacts').checked;
+            selectedContacts.clear();
+            if (selectAll) {
+                allContacts.forEach(c => selectedContacts.add(c.id));
+            }
+            renderContacts();
+        }
+
+        function filterContacts() {
+            const search = document.getElementById('contactsSearch').value.toLowerCase();
+            const filtered = allContacts.filter(c =>
+                c.name.toLowerCase().includes(search) ||
+                c.username.toLowerCase().includes(search)
+            );
+
+            const container = document.getElementById('contactsList');
+            container.innerHTML = filtered.map(contact => `
+                <div class="contact-item" onclick="toggleContact(${contact.id})">
+                    <input type="checkbox" id="contact_${contact.id}" ${selectedContacts.has(contact.id) ? 'checked' : ''} onclick="event.stopPropagation()">
+                    <div class="contact-avatar">${contact.avatar}</div>
+                    <div class="contact-info">
+                        <h4>${contact.name}</h4>
+                        <p>${contact.username || 'Нет username'}</p>
+                    </div>
+                    <span class="contact-type type-${contact.type}">
+                        ${contact.type === 'private' ? 'Личный' : contact.type === 'group' ? 'Группа' : 'Канал'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        async function refreshContacts() {
+            showAlert('Обновление контактов...', 'info');
+            await loadContactsForAccount();
+            showAlert('Контакты обновлены!', 'success');
+        }
+
+        async function sendBroadcast(e) {
+            e.preventDefault();
+            const account_phone = document.getElementById('broadcastAccount').value;
+            const text = document.getElementById('broadcastText').value;
+            const delay_seconds = parseInt(document.getElementById('broadcastDelay').value);
+            const file = document.getElementById('broadcastFile').files[0];
+            const chat_ids = Array.from(selectedContacts);
+
+            if (!account_phone || !text || chat_ids.length === 0) {
+                showAlert('Заполните все поля и выберите контакты', 'error');
+                return;
+            }
+
+            if (!confirm(`Отправить сообщение ${chat_ids.length} получателям?`)) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('account_phone', account_phone);
+                formData.append('text', text);
+                formData.append('delay_seconds', delay_seconds);
+                formData.append('chat_ids', JSON.stringify(chat_ids));
+                if (file) formData.append('file', file);
+
+                const response = await fetch('/api/broadcast', {
+                    method: 'POST',
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`},
+                    body: formData
+                });
+                if (!response.ok) throw new Error('Failed to broadcast');
+                showAlert('Рассылка начата!', 'success');
+            } catch (error) {
+                showAlert('Ошибка: ' + error.message, 'error');
+            }
+        }
+
         async function handleAddAccount(e) {
             e.preventDefault();
             currentAccountPhone = document.getElementById('accountPhone').value;
@@ -1275,7 +1571,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({phone: currentAccountPhone})
                 });
@@ -1299,7 +1595,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({code, phone_code_hash: phoneCodeHash})
                 });
@@ -1331,12 +1627,11 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({password})
                 });
                 if (!response.ok) throw new Error('Failed to verify 2FA');
-                const data = await response.json();
                 showAlert('Аккаунт успешно добавлен!', 'success', 'modalAlertContainer');
                 setTimeout(() => {
                     closeModal('addAccountModal');
@@ -1347,45 +1642,56 @@
             }
         }
 
-        async function deleteAccount(phone) {
-            if (!confirm('Удалить аккаунт?')) return;
+        async function handleAddTemplate(e) {
+            e.preventDefault();
+            const name = document.getElementById('templateName').value;
+            const text = document.getElementById('templateText').value;
+            const file = document.getElementById('templateFile').files[0];
+
             try {
-                const response = await fetch(`/api/accounts/${phone}`, {
-                    method: 'DELETE',
-                    headers: {'Authorization': `Bearer ${getToken()}`}
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('text', text);
+                if (file) formData.append('file', file);
+
+                const response = await fetch('/api/templates/create', {
+                    method: 'POST',
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`},
+                    body: formData
                 });
-                if (!response.ok) throw new Error('Failed to delete');
-                showAlert('Аккаунт удалён', 'success');
-                loadAccounts();
+                if (!response.ok) throw new Error('Failed to create template');
+                showAlert('Шаблон создан!', 'success');
+                closeModal('addTemplateModal');
+                loadTemplates();
             } catch (error) {
                 showAlert('Ошибка: ' + error.message, 'error');
             }
         }
 
-        // Template Management
-        async function handleAddTemplate(e) {
-            e.preventDefault();
-            const name = document.getElementById('templateName').value;
-            const text = document.getElementById('templateText').value;
-            // Здесь можно добавить file upload, если нужно (FormData)
-
+        async function loadTemplates() {
+            const templatesList = document.getElementById('templatesList');
             try {
-                const response = await fetch('/api/templates/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`
-                    },
-                    body: JSON.stringify({name, text})  // Добавь media_type, file_path если нужно
+                const response = await fetch('/api/templates', {
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
                 });
-                if (!response.ok) throw new Error('Failed to create template');
-                showAlert('Шаблон создан!', 'success', 'modalAlertContainer');
-                setTimeout(() => {
-                    closeModal('addTemplateModal');
-                    loadTemplates();
-                }, 2000);
+                if (!response.ok) throw new Error('Failed to load templates');
+                const data = await response.json();
+                templatesList.innerHTML = data.templates.map(tpl => `
+                    <div class="template-item">
+                        <div class="template-info">
+                            <i class="fas fa-file-alt" style="font-size: 24px; color: var(--primary);"></i>
+                            <div>
+                                <h4>${tpl.name}</h4>
+                                <p>${tpl.text.substring(0, 50)}...</p>
+                            </div>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn-icon btn-delete" onclick="deleteTemplate('${tpl.name}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
             } catch (error) {
-                showAlert('Ошибка: ' + error.message, 'error', 'modalAlertContainer');
+                templatesList.innerHTML = '<p style="color: var(--danger); text-align: center;">Ошибка загрузки шаблонов</p>';
             }
         }
 
@@ -1394,13 +1700,57 @@
             try {
                 const response = await fetch(`/api/templates/${name}`, {
                     method: 'DELETE',
-                    headers: {'Authorization': `Bearer ${getToken()}`}
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
                 });
                 if (!response.ok) throw new Error('Failed to delete');
                 showAlert('Шаблон удалён', 'success');
                 loadTemplates();
             } catch (error) {
                 showAlert('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function loadTemplatesForSelect(selectId) {
+            const select = document.getElementById(selectId);
+            try {
+                const response = await fetch('/api/templates', {
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+                });
+                if (!response.ok) throw new Error('Failed to load templates');
+                const data = await response.json();
+                select.innerHTML = '<option value="">Выберите шаблон</option>';
+                data.templates.forEach(tpl => {
+                    const option = document.createElement('option');
+                    option.value = tpl.name;
+                    option.textContent = tpl.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                select.innerHTML = '<option value="">Ошибка загрузки</option>';
+            }
+        }
+
+        async function loadHistory() {
+            const historyList = document.getElementById('historyList');
+            try {
+                const response = await fetch('/api/history', {
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+                });
+                if (!response.ok) throw new Error('Failed to load history');
+                const data = await response.json();
+                historyList.innerHTML = data.history.map(entry => `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <i class="fas fa-history" style="font-size: 24px; color: var(--primary);"></i>
+                            <div>
+                                <h4>${entry.date}</h4>
+                                <p>Аккаунт: ${entry.account_phone} | Успешно: ${entry.successful}/${entry.total}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                historyList.innerHTML = '<p style="color: var(--danger); text-align: center;">Ошибка загрузки истории</p>';
             }
         }
 
@@ -1418,7 +1768,6 @@
                     </button>
                 </div>
             `;
-            // Для upload: используй FormData в handleAddTemplate
         }
 
         function handleBroadcastFileUpload(e) {
@@ -1435,7 +1784,6 @@
                     </button>
                 </div>
             `;
-            // Для upload: используй FormData в sendBroadcast
         }
 
         function clearFilePreview(previewId, inputId) {
@@ -1443,46 +1791,11 @@
             document.getElementById(inputId).value = '';
         }
 
-        // Broadcast
-        async function sendBroadcast(e) {
-            e.preventDefault();
-            const account_phone = document.getElementById('broadcastAccount').value;
-            const text = document.getElementById('broadcastText').value;
-            const delay_seconds = document.getElementById('broadcastDelay').value;
-
-            if (!account_phone || !text) {
-                showAlert('Заполните все поля', 'error', 'alertContainer');
-                return;
-            }
-
-            if (!confirm('Начать рассылку?')) return;
-
-            try {
-                const response = await fetch('/api/broadcast', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`
-                    },
-                    body: JSON.stringify({account_phone, text, delay_seconds})
-                });
-                if (!response.ok) throw new Error('Failed to broadcast');
-                showAlert('Рассылка начата!', 'success', 'alertContainer');
-            } catch (error) {
-                showAlert('Ошибка: ' + error.message, 'error', 'alertContainer');
-            }
-        }
-
-        // Instant Send Settings
-        async function loadInstantSettings() {
-            // Загрузи настройки для выбранного аккаунта, fetch('/api/instant/settings/{phone}')
-        }
-
         async function saveInstantSettings(e) {
             e.preventDefault();
             const account_phone = document.getElementById('instantAccount').value;
             const template_name = document.getElementById('instantTemplate').value;
-            const delay_seconds = document.getElementById('instantDelay').value;
+            const delay_seconds = parseInt(document.getElementById('instantDelay').value);
             const enabled = document.getElementById('instantEnabled').checked;
 
             try {
@@ -1490,29 +1803,99 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
-                    body: JSON.stringify({account_phone, template_name, delay_seconds, enabled})
+                    body: JSON.stringify({account_phone, enabled, template_name, delay_seconds})
                 });
                 if (!response.ok) throw new Error('Failed to save');
-                showAlert('Настройки сохранены!', 'success', 'alertContainer');
+                showAlert('Настройки сохранены!', 'success');
             } catch (error) {
-                showAlert('Ошибка: ' + error.message, 'error', 'alertContainer');
+                showAlert('Ошибка: ' + error.message, 'error');
             }
+        }
+
+        function initCharts() {
+            if (messagesChart) messagesChart.destroy();
+            if (chatsChart) chatsChart.destroy();
+            if (statusChart) statusChart.destroy();
+
+            const ctx1 = document.getElementById('messagesChart');
+            messagesChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                    datasets: [{
+                        label: 'Отправлено',
+                        data: [65, 59, 80, 81, 56, 55, 40],
+                        borderColor: var(--primary),
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: var(--text-secondary) } },
+                        x: { grid: { display: false }, ticks: { color: var(--text-secondary) } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('chatsChart');
+            chatsChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Личные', 'Группы', 'Каналы'],
+                    datasets: [{
+                        data: [45, 35, 20],
+                        backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(59, 130, 246, 0.8)', 'rgba(139, 92, 246, 0.8)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom', labels: { color: var(--text-secondary), padding: 15 } } }
+                }
+            });
+
+            const ctx3 = document.getElementById('statusChart');
+            statusChart = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: ['Успешно', 'Ошибка', 'В очереди'],
+                    datasets: [{
+                        data: [85, 10, 5],
+                        backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)', 'rgba(245, 158, 11, 0.8)'],
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: var(--text-secondary) } },
+                        x: { grid: { display: false }, ticks: { color: var(--text-secondary) } }
+                    }
+                }
+            });
         }
 
         // Check auth on load
         window.addEventListener('load', async () => {
-            const token = getToken();
+            const token = localStorage.getItem('token');
             if (token) {
-                // Проверь токен, напр. fetch('/api/accounts') для валидации
                 try {
                     const response = await fetch('/api/accounts', {
                         headers: {'Authorization': `Bearer ${token}`}
                     });
                     if (response.ok) {
-                        // Загрузи username из backend если нужно
-                        document.getElementById('usernameDisplay').textContent = 'User';  // Замени на реальный
+                        document.getElementById('usernameDisplay').textContent = 'User';  // Можно загрузить реальный username
                         document.getElementById('userAvatar').textContent = 'U';
                         document.getElementById('loginPage').style.display = 'none';
                         document.getElementById('dashboard').style.display = 'block';
