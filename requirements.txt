@@ -1,18 +1,19 @@
-fastapi==0.115.0
-uvicorn==0.30.6
-pydantic==2.9.2
-telethon==1.36.0
-cryptography==3.4.8  # Старая версия без Rust, чтобы избежать maturin/Cargo ошибок
-sqlalchemy==2.0.35
-asyncpg==0.29.0
-bcrypt==4.2.0
-pyjwt==2.9.0
+# --- FastAPI и зависимости ---
 fastapi==0.115.2
 uvicorn==0.31.1
 pydantic==2.9.2
-bcrypt==4.2.0
-pyjwt==2.9.0
+python-dotenv==1.0.1
+
+# --- Работа с базой данных ---
 sqlalchemy==2.0.35
 asyncpg==0.29.0
-python-dotenv==1.0.1
-# Добавьте ваши: telethon или другие для telegram_core
+
+# --- Безопасность и шифрование ---
+bcrypt==4.2.0
+pyjwt==2.9.0
+cryptography==3.4.8  # старая версия без Rust (избегает ошибок maturin/Cargo)
+
+# --- Telegram ---
+telethon==1.36.0  # используйте для telegram_core
+
+
