@@ -211,6 +211,24 @@
             cursor: not-allowed;
         }
 
+        .register-link {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .register-link a:hover {
+            color: var(--secondary);
+        }
+
         /* Dashboard */
         .dashboard {
             display: none;
@@ -498,35 +516,33 @@
         }
 
         .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
             z-index: 1000;
+            animation: fadeIn 0.3s;
         }
 
         .modal.active {
-            opacity: 1;
-            visibility: visible;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .modal-content {
-            background: rgba(30, 41, 59, 0.9);
+            background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 32px;
-            max-width: 480px;
-            width: 100%;
-            position: relative;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
             animation: slideUp 0.4s ease-out;
         }
 
@@ -546,93 +562,153 @@
             background: none;
             border: none;
             color: var(--text-secondary);
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
-            transition: color 0.3s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.3s;
         }
 
         .btn-close:hover {
-            color: var(--danger);
+            background: var(--surface-hover);
+            color: var(--text-primary);
         }
 
         .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            animation: slideIn 0.3s ease-out;
+            animation: slideDown 0.4s ease-out;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .alert-success {
             background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             color: var(--secondary);
         }
 
         .alert-error {
             background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             color: var(--danger);
         }
 
         .alert-info {
             background: rgba(37, 99, 235, 0.2);
+            border: 1px solid rgba(37, 99, 235, 0.3);
             color: var(--primary);
         }
 
         .file-upload {
-            background: var(--surface);
             border: 2px dashed var(--border);
             border-radius: 12px;
             padding: 32px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
         }
 
         .file-upload:hover {
             border-color: var(--primary);
-            background: var(--surface-hover);
+            background: rgba(37, 99, 235, 0.05);
         }
 
-        .file-upload-label p {
-            color: var(--text-secondary);
-            font-size: 14px;
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload-label {
+            cursor: pointer;
         }
 
         .file-preview {
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-top: 16px;
-            padding: 12px;
-            background: var(--surface-hover);
-            border-radius: 12px;
         }
 
-        .file-preview span {
-            flex: 1;
-            color: var(--text-primary);
-            font-size: 14px;
+        .file-preview img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-wrap: nowrap;
+            }
+
+            .account-item, .template-item {
+                flex-direction: column;
+                gap: 16px;
+            }
         }
     </style>
 </head>
 <body>
+
+    <!-- Login Page -->
     <div id="loginPage" class="login-container">
         <div class="login-box">
             <div class="login-header">
                 <i class="fas fa-robot"></i>
                 <h1>Telegram Manager</h1>
-                <p>Управление рассылками и автоматизацией</p>
+                <p>Управляйте рассылками эффективно</p>
             </div>
 
-            <form id="loginForm" onsubmit="handleLogin(event)">
+            <form onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>Логин</label>
                     <div class="input-wrapper">
@@ -655,20 +731,24 @@
                 </button>
             </form>
 
-            <div id="alertContainer"></div>
+            <div class="register-link">
+                Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрироваться</a>
+            </div>
         </div>
     </div>
 
+    <!-- Dashboard -->
     <div id="dashboard" class="dashboard">
         <nav class="navbar">
             <div class="navbar-brand">
                 <i class="fas fa-robot"></i>
                 Telegram Manager
             </div>
+
             <div class="navbar-actions">
                 <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">U</div>
-                    <span id="usernameDisplay">User</span>
+                    <div id="userAvatar" class="user-avatar"></div>
+                    <span id="usernameDisplay"></span>
                 </div>
                 <button class="btn btn-secondary" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
@@ -678,15 +758,18 @@
         </nav>
 
         <div class="container">
+            <div id="alertContainer"></div>
+
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('dashboard')">Дашборд</button>
                 <button class="tab" onclick="switchTab('accounts')">Аккаунты</button>
                 <button class="tab" onclick="switchTab('templates')">Шаблоны</button>
                 <button class="tab" onclick="switchTab('broadcast')">Рассылка</button>
-                <button class="tab" onclick="switchTab('instant')">Моментальная Отправка</button>
+                <button class="tab" onclick="switchTab('instant')">Моментальная</button>
                 <button class="tab" onclick="switchTab('history')">История</button>
             </div>
 
+            <!-- Dashboard Tab -->
             <div id="dashboardTab" class="tab-content active">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -708,136 +791,154 @@
                 </div>
             </div>
 
+            <!-- Accounts Tab -->
             <div id="accountsTab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">
+                        <h3 class="card-title">
                             <i class="fas fa-users"></i>
                             Ваши Telegram Аккаунты
-                        </div>
+                        </h3>
                         <button class="btn btn-primary" onclick="showAddAccountModal()">
                             <i class="fas fa-plus"></i>
-                            Добавить Аккаунт
+                            Добавить аккаунт
                         </button>
                     </div>
-                    <div id="accountsList" class="account-list"></div>
+                    <div class="account-list" id="accountsList"></div>
                 </div>
             </div>
 
+            <!-- Templates Tab -->
             <div id="templatesTab" class="tab-content">
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">
+                        <h3 class="card-title">
                             <i class="fas fa-file-alt"></i>
                             Шаблоны Сообщений
-                        </div>
+                        </h3>
                         <button class="btn btn-primary" onclick="showAddTemplateModal()">
                             <i class="fas fa-plus"></i>
-                            Создать Шаблон
+                            Создать шаблон
                         </button>
                     </div>
-                    <div id="templatesList" class="template-list"></div>
+                    <div class="template-list" id="templatesList"></div>
                 </div>
             </div>
 
+            <!-- Broadcast Tab -->
             <div id="broadcastTab" class="tab-content">
                 <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-broadcast-tower"></i>
-                            Массовая Рассылка
-                        </div>
+                    <h3 class="card-title">
+                        <i class="fas fa-broadcast-tower"></i>
+                        Массовая Рассылка
+                    </h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                        Отправьте сообщение во все чаты или выбранные
+                    </p>
+
+                    <div class="form-group">
+                        <label>Выберите аккаунт</label>
+                        <select id="broadcastAccount">
+                            <option value="">Загрузка...</option>
+                        </select>
                     </div>
-                    <form onsubmit="sendBroadcast(event)">
-                        <div class="form-group">
-                            <label>Аккаунт для рассылки</label>
-                            <select id="broadcastAccount" required></select>
-                        </div>
 
-                        <div class="form-group">
-                            <label>Текст сообщения</label>
-                            <textarea id="broadcastText" placeholder="Введите текст для рассылки..." required></textarea>
-                        </div>
+                    <div class="form-group">
+                        <label>Текст сообщения</label>
+                        <textarea id="broadcastText" placeholder="Введите текст для рассылки..."></textarea>
+                    </div>
 
-                        <div class="form-group">
-                            <label>Задержка между отправками (секунды)</label>
-                            <input type="number" id="broadcastDelay" value="30" min="1" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Задержка между отправками</label>
+                        <select id="broadcastDelay">
+                            <option value="30">30 секунд</option>
+                            <option value="60">1 минута</option>
+                            <option value="300">5 минут</option>
+                        </select>
+                    </div>
 
-                        <div class="form-group">
-                            <label>Прикрепить файл (опционально)</label>
-                            <div class="file-upload" onclick="document.getElementById('broadcastFile').click()">
-                                <input type="file" id="broadcastFile" accept="image/*,video/*,.pdf,.doc,.docx" onchange="handleBroadcastFileUpload(event)">
-                                <div class="file-upload-label">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
-                                    <p>Нажмите для загрузки файла</p>
-                                </div>
+                    <div class="form-group">
+                        <label>Прикрепить файл (опционально)</label>
+                        <div class="file-upload" onclick="document.getElementById('broadcastFile').click()">
+                            <input type="file" id="broadcastFile" accept="image/*,video/*,.pdf,.doc,.docx" onchange="handleBroadcastFileUpload(event)">
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
+                                <p>Нажмите для загрузки файла</p>
                             </div>
-                            <div id="broadcastFilePreview"></div>
                         </div>
+                        <div id="broadcastFilePreview"></div>
+                    </div>
 
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i>
-                            Начать Рассылку
-                        </button>
-                    </form>
+                    <button class="btn btn-primary" onclick="sendBroadcast()">
+                        <i class="fas fa-paper-plane"></i>
+                        Начать рассылку
+                    </button>
                 </div>
             </div>
 
+            <!-- Instant Send Tab -->
             <div id="instantTab" class="tab-content">
                 <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-bolt"></i>
-                            Моментальная Отправка
-                        </div>
+                    <h3 class="card-title">
+                        <i class="fas fa-bolt"></i>
+                        Моментальная Отправка После Входа
+                    </h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                        Настройте автоматическую отправку шаблона сразу после авторизации в Telegram
+                    </p>
+
+                    <div class="form-group">
+                        <label>Выберите аккаунт</label>
+                        <select id="instantAccount" onchange="loadInstantSettings()">
+                            <option value="">Загрузка...</option>
+                        </select>
                     </div>
-                    <form onsubmit="saveInstantSettings(event)">
-                        <div class="form-group">
-                            <label>Аккаунт</label>
-                            <select id="instantAccount" required onchange="loadInstantSettings()"></select>
-                        </div>
 
-                        <div class="form-group">
-                            <label>Включить моментальную отправку</label>
-                            <input type="checkbox" id="instantEnabled">
-                        </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 12px;">
+                            <input type="checkbox" id="instantEnabled" style="width: auto; padding: 0; margin: 0;">
+                            Включить автоматическую отправку
+                        </label>
+                    </div>
 
-                        <div class="form-group">
-                            <label>Шаблон для отправки</label>
-                            <select id="instantTemplate" required></select>
-                        </div>
+                    <div class="form-group">
+                        <label>Выберите шаблон</label>
+                        <select id="instantTemplate">
+                            <option value="">Выберите шаблон</option>
+                        </select>
+                    </div>
 
-                        <div class="form-group">
-                            <label>Задержка (секунды)</label>
-                            <input type="number" id="instantDelay" value="30" min="1" required>
-                        </div>
+                    <div class="form-group">
+                        <label>Задержка перед отправкой</label>
+                        <select id="instantDelay">
+                            <option value="10">10 секунд</option>
+                            <option value="30">30 секунд</option>
+                            <option value="60">1 минута</option>
+                            <option value="300">5 минут</option>
+                        </select>
+                    </div>
 
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i>
-                            Сохранить Настройки
-                        </button>
-                    </form>
+                    <button class="btn btn-primary" onclick="saveInstantSettings()">
+                        <i class="fas fa-save"></i>
+                        Сохранить настройки
+                    </button>
                 </div>
             </div>
 
+            <!-- History Tab -->
             <div id="historyTab" class="tab-content">
                 <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-history"></i>
-                            История Рассылок
-                        </div>
-                    </div>
+                    <h3 class="card-title">
+                        <i class="fas fa-history"></i>
+                        История Рассылок
+                    </h3>
                     <div id="historyList"></div>
                 </div>
             </div>
-
-            <div id="alertContainer"></div>
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Add Account Modal -->
     <div id="addAccountModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -847,13 +948,11 @@
                 </button>
             </div>
             <div id="modalAlertContainer"></div>
-
             <form id="addAccountForm" onsubmit="handleAddAccount(event)">
                 <div class="form-group">
                     <label>Номер телефона</label>
-                    <input type="text" id="accountPhone" placeholder="+79123456789" required>
+                    <input type="tel" id="accountPhone" placeholder="+79991234567" required>
                 </div>
-
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-paper-plane"></i>
                     Отправить код
@@ -863,9 +962,8 @@
             <form id="verifyCodeForm" class="hidden" onsubmit="handleVerifyCode(event)">
                 <div class="form-group">
                     <label>Код из Telegram</label>
-                    <input type="text" id="accountCode" placeholder="Введите код" required>
+                    <input type="text" id="accountCode" placeholder="12345" required>
                 </div>
-
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-check"></i>
                     Подтвердить
@@ -874,18 +972,18 @@
 
             <form id="verify2FAForm" class="hidden" onsubmit="handleVerify2FA(event)">
                 <div class="form-group">
-                    <label>Пароль 2FA</label>
-                    <input type="password" id="account2FA" placeholder="Введите пароль 2FA" required>
+                    <label>2FA Пароль</label>
+                    <input type="password" id="account2FA" placeholder="Ваш Cloud Password" required>
                 </div>
-
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-key"></i>
                     Подтвердить
                 </button>
             </form>
         </div>
     </div>
 
+    <!-- Add Template Modal -->
     <div id="addTemplateModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -930,12 +1028,7 @@
         // Supabase Configuration
         const SUPABASE_URL = 'https://wdmyvtyvalcczvittgci.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXl2dHl2YWxjY3p2aXR0Z2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODU1MDMsImV4cCI6MjA3NzI2MTUwM30.E6VINGOINsxr30Se-1ZTEt1SYBdNlW8y2Foe0CzJShU';
-
-        // Инициализация Supabase
-        let supabase;
-        window.addEventListener('load', () => {
-            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        });
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let currentUser = null;
         let currentAccountPhone = null;
@@ -999,7 +1092,7 @@
 
             try {
                 // Login with Supabase Auth
-                const { data, error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: username + '@telegrammanager.local',
                     password: password
                 });
@@ -1020,8 +1113,36 @@
             }
         }
 
+        function showRegister() {
+            const username = prompt('Введите желаемый логин:');
+            if (!username) return;
+
+            const password = prompt('Введите пароль (минимум 6 символов):');
+            if (!password || password.length < 6) {
+                alert('Пароль должен содержать минимум 6 символов');
+                return;
+            }
+
+            registerUser(username, password);
+        }
+
+        async function registerUser(username, password) {
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: username + '@telegrammanager.local',
+                    password: password
+                });
+
+                if (error) throw error;
+
+                showAlert('Регистрация успешна! Войдите в систему', 'success');
+            } catch (error) {
+                showAlert('Ошибка регистрации: ' + error.message, 'error');
+            }
+        }
+
         async function logout() {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             currentUser = null;
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('loginPage').style.display = 'flex';
@@ -1178,7 +1299,7 @@
 
         // Check auth on load
         window.addEventListener('load', async () => {
-            const { data } = await supabase.auth.getSession();
+            const { data } = await supabaseClient.auth.getSession();
             if (data.session) {
                 currentUser = data.session.user;
                 const username = data.session.user.email.split('@')[0];
