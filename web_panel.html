@@ -1023,22 +1023,10 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://wdmyvtyvalcczvittgci.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXl2dHl2YWxjY3p2aXR0Z2NpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODU1MDMsImV4cCI6MjA3NzI2MTUwM30.E6VINGOINsxr30Se-1ZTEt1SYBdNlW8y2Foe0CzJShU';
-
-        // Извлекаем createClient из глобального supabase (из CDN)
-        const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            global: {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
-            }
-        });
 
         let currentUser = null;
         let currentAccountPhone = null;
@@ -1094,20 +1082,94 @@
             }
         }
 
+        // Manual Auth Functions using fetch
+        async function manualSignIn(email, password) {
+            const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Auth failed');
+            }
+
+            return await response.json();
+        }
+
+        async function manualSignUp(email, password) {
+            const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Signup failed');
+            }
+
+            return await response.json();
+        }
+
+        async function manualSignOut() {
+            const accessToken = localStorage.getItem('supabase.access_token');
+            if (!accessToken) return;
+
+            await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+
+            localStorage.removeItem('supabase.session');
+            localStorage.removeItem('supabase.access_token');
+        }
+
+        async function manualGetSession() {
+            const accessToken = localStorage.getItem('supabase.access_token');
+            if (!accessToken) return { session: null };
+
+            const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                method: 'GET',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            if (!response.ok) {
+                localStorage.removeItem('supabase.session');
+                localStorage.removeItem('supabase.access_token');
+                return { session: null };
+            }
+
+            const user = await response.json();
+            return { session: { user, access_token: accessToken } };
+        }
+
         // Authentication
         async function handleLogin(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const email = username + '@telegrammanager.local';
 
             try {
-                // Login with Supabase Auth
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email: username + '@telegrammanager.local',
-                    password: password
-                });
-
-                if (error) throw error;
+                const data = await manualSignIn(email, password);
+                localStorage.setItem('supabase.session', JSON.stringify(data));
+                localStorage.setItem('supabase.access_token', data.access_token);
 
                 currentUser = data.user;
                 document.getElementById('usernameDisplay').textContent = username;
@@ -1119,7 +1181,7 @@
                 loadDashboard();
                 showAlert('Добро пожаловать!', 'success', 'alertContainer');
             } catch (error) {
-                showAlert('Неверный логин или пароль', 'error');
+                showAlert('Неверный логин или пароль: ' + error.message, 'error');
             }
         }
 
@@ -1133,18 +1195,13 @@
                 return;
             }
 
-            registerUser(username, password);
+            const email = username + '@telegrammanager.local';
+            registerUser(email, password);
         }
 
-        async function registerUser(username, password) {
+        async function registerUser(email, password) {
             try {
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email: username + '@telegrammanager.local',
-                    password: password
-                });
-
-                if (error) throw error;
-
+                const data = await manualSignUp(email, password);
                 showAlert('Регистрация успешна! Войдите в систему', 'success');
             } catch (error) {
                 showAlert('Ошибка регистрации: ' + error.message, 'error');
@@ -1152,7 +1209,7 @@
         }
 
         async function logout() {
-            await supabaseClient.auth.signOut();
+            await manualSignOut();
             currentUser = null;
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('loginPage').style.display = 'flex';
@@ -1309,10 +1366,10 @@
 
         // Check auth on load
         window.addEventListener('load', async () => {
-            const { data } = await supabaseClient.auth.getSession();
-            if (data.session) {
-                currentUser = data.session.user;
-                const username = data.session.user.email.split('@')[0];
+            const { session } = await manualGetSession();
+            if (session) {
+                currentUser = session.user;
+                const username = session.user.email.split('@')[0];
                 document.getElementById('usernameDisplay').textContent = username;
                 document.getElementById('userAvatar').textContent = username[0].toUpperCase();
                 document.getElementById('loginPage').style.display = 'none';
