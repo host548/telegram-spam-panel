@@ -115,6 +115,40 @@ async def init_db():
 @app.on_event("startup")
 async def startup():
     await init_db()
+    await restore_sessions()
+async def restore_sessions():
+    """Восстановление активных сессий из БД при запуске"""
+    try:
+        async with async_session() as session:
+            # Получаем всех пользователей
+            result = await session.execute(select(User))
+            users = result.scalars().all()
+            
+            for user in users:
+                try:
+                    user_data = await get_user_data(user.user_id, session)
+                    accounts = user_data.get('accounts', {})
+                    
+                    for phone, account_info in accounts.items():
+                        if account_info.get('authorized') and account_info.get('session_string'):
+                            user_hash = int(user.user_id.replace('-', '')[:8], 16) if '-' in user.user_id else hash(user.user_id)
+                            
+                            # Восстанавливаем сессию
+                            try:
+                                await telegram_manager.create_session(
+                                    user_hash, 
+                                    phone, 
+                                    account_info['session_string']
+                                )
+                                logging.info(f"Restored session for {phone}")
+                            except Exception as e:
+                                logging.error(f"Failed to restore session for {phone}: {e}")
+                except Exception as e:
+                    logging.error(f"Error restoring sessions for user {user.username}: {e}")
+                    
+        logging.info("Session restoration completed")
+    except Exception as e:
+        logging.error(f"Error in restore_sessions: {e}")
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -395,11 +429,15 @@ async def start_auth(request: AuthStartRequest, user_id: str = Depends(get_curre
         # Создаем хэш для пользователя
         user_hash = int(user_id.replace('-', '')[:8], 16) if '-' in user_id else hash(user_id)
         
+        # Получаем существующую сессию из БД если есть
+        session_info = await get_session_info(user_id, request.phone, db)
+        session_string = session_info.get('session_string') if session_info else None
+        
         # Создаем сессию Telegram
-        userbot = await telegram_manager.create_session(user_hash, request.phone)
+        userbot = await telegram_manager.create_session(user_hash, request.phone, session_string)
         
         # Отправляем код авторизации
-        phone_code_hash = await userbot.send_code_request()
+        phone_code_hash = await userbot.send_code_request()  # Изменено с send_code
         
         # Сохраняем информацию о сессии
         await save_session_info(
@@ -438,9 +476,29 @@ async def submit_auth_code(request: AuthCodeRequest, user_id: str = Depends(get_
         # Авторизуемся с кодом
         result = await userbot.sign_in(request.code, request.phone_code_hash)
         
+        if not result.get('success'):
+            if result.get('needs_password'):
+                raise HTTPException(status_code=400, detail="2FA password required")
+            raise HTTPException(status_code=400, detail=result.get('error', 'Invalid code'))
+        
+        # ВАЖНО: Получаем session_string для сохранения
+        session_string = result.get('session_string') or userbot.get_session_string()
+        
         # Получаем информацию о телефоне из сессии
-        session_info = await get_session_info(user_id, "", db)  
+        session_info = await get_session_info(user_id, "", db)
         phone = session_info.get('phone', userbot.phone if hasattr(userbot, 'phone') else "")
+        
+        # Сохраняем session string для восстановления после перезапуска
+        await save_session_info(
+            user_id,
+            phone,
+            {
+                'session_string': session_string,
+                'phone': phone,
+                'timestamp': datetime.now().isoformat()
+            },
+            db
+        )
         
         # Обновляем информацию об аккаунте
         user_data = await get_user_data(user_id, db)
@@ -459,7 +517,8 @@ async def submit_auth_code(request: AuthCodeRequest, user_id: str = Depends(get_
             'authorized': True,
             'added_at': datetime.now().isoformat(),
             'chats': chats_count,
-            'sent': 0
+            'sent': 0,
+            'session_string': session_string  # Сохраняем для восстановления
         }
         
         await update_user_data(user_id, {'accounts': user_data['accounts']}, db)
@@ -470,6 +529,8 @@ async def submit_auth_code(request: AuthCodeRequest, user_id: str = Depends(get_
             "message": "Account authorized successfully"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Auth code error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -868,6 +929,7 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
 
