@@ -156,7 +156,7 @@ async def health_check():
     return {"status": "healthy", "version": "2.0"}
 
 # Регистрация
-@app.post("/api/register")
+@app.post("/api/auth/register")
 async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db)):
     try:
         existing = await db.execute(select(User).where(User.username == request.username))
@@ -177,7 +177,7 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
         raise HTTPException(status_code=500, detail="Database error")
 
 # Логин
-@app.post("/api/login")
+@app.post("/api/auth/login")
 async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     try:
         user_query = await db.execute(select(User).where(User.username == request.username))
