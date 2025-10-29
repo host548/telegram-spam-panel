@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
 import logging
+import ssl
 import os
 from pathlib import Path
 import uuid
@@ -67,11 +68,24 @@ if DATABASE_URL.startswith("postgresql://"):
 else:
     ASYNC_DATABASE_URL = DATABASE_URL
 
-# Добавляем параметры SSL для Render
-if "render.com" in ASYNC_DATABASE_URL or "dpg-" in ASYNC_DATABASE_URL:
-    ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.replace("?", "?sslmode=require&") if "?" in ASYNC_DATABASE_URL else ASYNC_DATABASE_URL + "?sslmode=require"
+# Убираем любые параметры SSL из URL если они есть
+ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.split('?')[0]
 
-engine = create_async_engine(ASYNC_DATABASE_URL, echo=False, pool_pre_ping=True)
+# Настройки SSL для asyncpg (правильный способ для Render)
+ssl_args = {}
+if "render.com" in ASYNC_DATABASE_URL or "dpg-" in ASYNC_DATABASE_URL:
+    import ssl
+    ssl_args = {
+        "ssl": ssl.create_default_context()
+    }
+
+# Создаем engine с правильными параметрами SSL
+engine = create_async_engine(
+    ASYNC_DATABASE_URL, 
+    echo=False, 
+    pool_pre_ping=True,
+    connect_args=ssl_args
+)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 # Модели базы данных
@@ -856,3 +870,4 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
