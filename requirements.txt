@@ -1,16 +1,5 @@
-# FastAPI и веб-сервер
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-python-multipart==0.0.6
-
-# Telegram
-Telethon==1.33.1
-
-# Утилиты
-aiofiles==23.2.1
-python-dotenv==1.0.0
-
-# Дополнительные зависимости для Telethon
-pyaes==1.6.1
-rsa==4.9
+fastapi==0.115.0
+uvicorn==0.30.6
+pydantic==2.9.2
+telethon==1.36.0
+cryptography==3.4.8  # Старая версия без Rust, чтобы избежать maturin/Cargo ошибок
