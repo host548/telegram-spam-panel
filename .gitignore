@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+sessions/
+*.session
+user_settings.json
+sessions_data.json
+*.log
