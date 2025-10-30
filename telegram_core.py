@@ -90,7 +90,7 @@ class TelegramUserbot:
             
             try:
                 await self.client.connect()
-                logging.info(f"Client created and connected: {type(self.client)}")  # Лог для отладки
+                logging.info(f"Client created and connected: {type(self.client)}")
             except Exception as e:
                 logging.error(f"Ошибка подключения: {e}")
                 # Обработка повреждённой базы данных (только для файловой сессии)
@@ -119,7 +119,7 @@ class TelegramUserbot:
                         flood_sleep_threshold=60
                     )
                     await self.client.connect()
-                    logging.info(f"New client created after cleanup: {type(self.client)}")  # Лог
+                    logging.info(f"New client created after cleanup: {type(self.client)}")
                     
             return self.client
     
@@ -151,7 +151,7 @@ class TelegramUserbot:
                 if not self.client.is_connected():
                     await self.client.connect()
                 
-                logging.info(f"Type of self.client before send_code_request: {type(self.client)}")  # Лог для отладки
+                logging.info(f"Type of self.client before send_code_request: {type(self.client)}")
                 if not self.client:
                     logging.error("self.client is None! Cannot send code.")
                     raise ValueError("Client not initialized")
@@ -183,7 +183,15 @@ class TelegramUserbot:
                     phone_code_hash=phone_code_hash
                 )
                 self.is_authorized = True
-                return {"success": True, "needs_password": False}
+                
+                # Получаем session_string сразу после успешной авторизации
+                session_string = self.get_session_string()
+                
+                return {
+                    "success": True, 
+                    "needs_password": False,
+                    "session_string": session_string
+                }
             except SessionPasswordNeededError:
                 return {"success": False, "needs_password": True}
             except Exception as e:
@@ -200,6 +208,16 @@ class TelegramUserbot:
             except:
                 self.is_authorized = False
                 return False
+    
+    def get_session_string(self):
+        """Получение session string для сохранения"""
+        try:
+            if self.client and hasattr(self.client, 'session'):
+                return self.client.session.save()
+            return None
+        except Exception as e:
+            logging.error(f"Ошибка получения session_string: {e}")
+            return None
     
     async def get_dialogs(self):
         """Получение списка чатов/групп/каналов"""
@@ -379,7 +397,7 @@ class TelegramCoreManager:
             await self.sessions[user_id].disconnect()
         
         userbot = TelegramUserbot(user_id, phone)
-        await userbot.create_client(session_string)  # Передаём session_string сюда
+        await userbot.create_client(session_string)
         self.sessions[user_id] = userbot
         return userbot
     
