@@ -437,7 +437,7 @@ async def start_auth(request: AuthStartRequest, user_id: str = Depends(get_curre
         userbot = await telegram_manager.create_session(user_hash, request.phone, session_string)
         
         # Отправляем код авторизации
-        phone_code_hash = await userbot.send_code_request()  # Изменено с send_code
+        phone_code_hash = await userbot.send_code()  # Изменено с send_code
         
         # Сохраняем информацию о сессии
         await save_session_info(
@@ -929,6 +929,7 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
 
