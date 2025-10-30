@@ -152,8 +152,12 @@ class TelegramUserbot:
                     await self.client.connect()
                 
                 logging.info(f"Type of self.client before send_code_request: {type(self.client)}")  # Лог для отладки
+                if not self.client:
+                    logging.error("self.client is None! Cannot send code.")
+                    raise ValueError("Client not initialized")
+                
                 if not hasattr(self.client, 'send_code_request'):
-                    logging.error("self.client does not have 'send_code_request' method! Check Telethon installation.")
+                    logging.error("self.client does not have 'send_code_request' method! Wrong client type.")
                     raise AttributeError("TelegramClient missing 'send_code_request' method")
                 
                 result = await self.client.send_code_request(self.phone)
