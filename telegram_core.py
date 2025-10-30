@@ -4,7 +4,7 @@ Telegram Core Module
 """
 
 from telethon import TelegramClient
-from telethon.sessions import StringSession  # Добавьте этот импорт для работы со строковыми сессиями
+from telethon.sessions import StringSession
 from telethon.errors import (
     SessionPasswordNeededError, 
     FloodWaitError, 
@@ -68,7 +68,7 @@ class TelegramUserbot:
             # Если session_string передан, используем его (для восстановления)
             if session_string:
                 self.client = TelegramClient(
-                    StringSession(session_string),  # Используем строковую сессию
+                    StringSession(session_string), 
                     api_id=API_ID,
                     api_hash=API_HASH,
                     auto_reconnect=True,
@@ -90,6 +90,7 @@ class TelegramUserbot:
             
             try:
                 await self.client.connect()
+                logging.info(f"Client created and connected: {type(self.client)}")  # Лог для отладки
             except Exception as e:
                 logging.error(f"Ошибка подключения: {e}")
                 # Обработка повреждённой базы данных (только для файловой сессии)
@@ -118,7 +119,8 @@ class TelegramUserbot:
                         flood_sleep_threshold=60
                     )
                     await self.client.connect()
-            
+                    logging.info(f"New client created after cleanup: {type(self.client)}")  # Лог
+                    
             return self.client
     
     async def check_session(self):
@@ -148,7 +150,12 @@ class TelegramUserbot:
             try:
                 if not self.client.is_connected():
                     await self.client.connect()
-                    
+                
+                logging.info(f"Type of self.client before send_code_request: {type(self.client)}")  # Лог для отладки
+                if not hasattr(self.client, 'send_code_request'):
+                    logging.error("self.client does not have 'send_code_request' method! Check Telethon installation.")
+                    raise AttributeError("TelegramClient missing 'send_code_request' method")
+                
                 result = await self.client.send_code_request(self.phone)
                 return result.phone_code_hash
             except Exception as e:
@@ -159,6 +166,7 @@ class TelegramUserbot:
                     await self.client.connect()
                     result = await self.client.send_code_request(self.phone)
                     return result.phone_code_hash
+                logging.error(f"Error in send_code: {e}")
                 raise e
     
     async def sign_in(self, phone_code: str, phone_code_hash: str):
@@ -393,3 +401,4 @@ class TelegramCoreManager:
         """Очистить все сессии"""
         for user_id in list(self.sessions.keys()):
             await self.remove_session(user_id)
+
