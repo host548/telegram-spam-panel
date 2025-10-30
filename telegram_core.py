@@ -148,13 +148,14 @@ class TelegramUserbot:
         """Отправка кода авторизации"""
         async with self.lock:
             try:
-                if not self.client.is_connected():
-                    await self.client.connect()
-                
-                logging.info(f"Type of self.client before send_code_request: {type(self.client)}")  # Лог для отладки
+               if not self.client:
+                    logging.error("self.client is None! Cannot send code.")
+                    raise ValueError("Client not initialized")
+
+                logging.info(f"Calling send_code_request on client of type: {type(self.client)}")
                 if not hasattr(self.client, 'send_code_request'):
-                    logging.error("self.client does not have 'send_code_request' method! Check Telethon installation.")
-                    raise AttributeError("TelegramClient missing 'send_code_request' method")
+                    logging.error("self.client does not have 'send_code_request'! Wrong client type.")
+                    raise AttributeError("TelegramClient missing method")
                 
                 result = await self.client.send_code_request(self.phone)
                 return result.phone_code_hash
@@ -401,4 +402,5 @@ class TelegramCoreManager:
         """Очистить все сессии"""
         for user_id in list(self.sessions.keys()):
             await self.remove_session(user_id)
+
 
